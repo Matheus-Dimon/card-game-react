@@ -1,0 +1,102 @@
+:root{
+  --bg:#0f1724; --card:#0b1220; --accent:#f5c06b; --muted:#94a3b8;
+}
+body{background:linear-gradient(180deg,#071028 0%, #0b1730 100%); color:#e6eef8; font-family:Inter, system-ui, sans-serif;}
+.board-root{max-width:1100px;margin:20px auto;padding:16px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.2));box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+.board-top,.board-bottom{display:flex;align-items:center;justify-content:space-between;padding:8px}
+.board-field{display:flex;flex-direction:row;gap:8px;flex:1;justify-content:center}
+.board-middle-field{display:flex;gap:8px;justify-content:center;padding:6px}
+.lane{background:rgba(10,12,20,0.6);padding:8px;border-radius:8px;min-width:260px}
+.lane-header{font-size:12px;color:var(--muted);text-align:center;margin-bottom:6px}
+.lane-cards{display:flex;gap:6px;justify-content:center;min-height:90px}
+.card{position:relative;border-radius:8px;overflow:hidden;border:2px solid rgba(255,255,255,0.04);background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.card img{width:100%;height:100%;object-fit:cover}
+.card-hand{width:64px;height:96px}
+.card-field{width:98px;height:140px}
+.card-mana{position:absolute;top:6px;left:6px;background:#132f5a;border-radius:999px;padding:4px 6px;font-weight:700}
+.card-type{position:absolute;top:6px;right:6px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px}
+.card-stats{position:absolute;bottom:0;left:0;right:0;padding:6px;background:linear-gradient(0deg,rgba(0,0,0,0.75),transparent);display:flex;justify-content:space-between;font-size:12px}
+.hand{display:flex;gap:8px;align-items:center;padding:8px}
+.hero{display:flex;align-items:center;gap:12px}
+.hero-img{width:70px;height:70px;border-radius:50%;border:3px solid rgba(255,255,255,0.06)}
+.controls{display:flex;align-items:center;gap:8px}
+.btn{background:linear-gradient(180deg,var(--accent),#d9a24d);border:none;padding:8px 12px;border-radius:8px;color:#102030;font-weight:700}
+.game-log{max-width:220px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px}
+.deck-setup{padding:12px}
+.deck-grid{display:flex;gap:8px;flex-wrap:wrap}
+.deck-card{width:80px;border-radius:8px;overflow:hidden;border:2px solid rgba(255,255,255,0.03);cursor:pointer}
+.deck-card.selected{outline:3px solid rgba(245,192,107,0.6)}
+.animation-layer{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.animation-layer .anim-element{position:absolute;transform:translate3d(0,0,0);}
+
+/* subtle hearthstone-like frame accents */
+.card::after{content:'';position:absolute;inset:0;border-radius:8px;box-shadow:inset 0 2px 0 rgba(255,255,255,0.02), inset 0 -10px 30px rgba(0,0,0,0.6)}
+
+/* Hearthstone-like refinements */
+.board-root{background:linear-gradient(180deg,#071026 0%, #08102a 60%, #050612 100%);border:1px solid rgba(255,255,255,0.03);padding:20px}
+.board-top,.board-bottom{padding:14px}
+
+/* board bowl */
+.board-center{display:flex;justify-content:center;align-items:center;padding:14px}
+.board-middle-field{background:radial-gradient(1200px 400px at 50% 30%, rgba(255,255,255,0.02), transparent 10%), linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.3));padding:12px;border-radius:14px;box-shadow:inset 0 -30px 80px rgba(0,0,0,0.5)}
+
+/* card frame style */
+.card{border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg,#0b1420 0%, #08111a 100%);transition:transform .18s ease, box-shadow .18s ease}
+.card:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 18px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(30,50,80,0.6)}
+
+/* inner beveled frame */
+.card::before{content:'';position:absolute;inset:6px;border-radius:8px;pointer-events:none;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.5));mix-blend-mode:overlay}
+
+/* cost circle */
+.card-mana{background:linear-gradient(180deg,#1b6bd6,#0d3a82);border-radius:999px;padding:6px 8px;color:#fff;font-weight:800;box-shadow:0 4px 10px rgba(13,40,96,0.6)}
+
+/* rarity gem */
+.card-type{background:linear-gradient(180deg,#ffd86b,#d58c1a);border-radius:6px;padding:3px 6px;color:#111;font-weight:700;box-shadow:0 3px 8px rgba(0,0,0,0.5)}
+
+/* attack/def/ heal badges */
+.card-stats{font-weight:800;letter-spacing:0.5px}
+.card-stats .atk{color:#ffd6d6}
+.card-stats .def{color:#bfe5ff}
+.card-stats .heal{color:#fff2bf}
+
+/* selected glow */
+.card.selected{outline:4px solid rgba(245,192,107,0.24);box-shadow:0 20px 50px rgba(245,192,107,0.12), 0 2px 8px rgba(30,30,30,0.6)}
+
+.target-highlight{outline:3px solid rgba(255,120,60,0.22);box-shadow:0 12px 30px rgba(255,120,60,0.06)}
+
+/* damage pop */
+.damage-pop{position:absolute;color:#fff;font-weight:900;text-shadow:0 2px 6px rgba(0,0,0,0.7);pointer-events:none;transform:translate3d(-50%,-120%,0);opacity:0;animation:damagePop 900ms ease-out forwards}
+@keyframes damagePop{0%{opacity:0;transform:translate3d(-50%,-120%,0) scale(0.8)}20%{opacity:1;transform:translate3d(-50%,-140%,0) scale(1.05)}100%{opacity:0;transform:translate3d(-50%,-200%,0) scale(1.2)}}
+
+/* spark particles container */
+.spark{position:absolute;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle, #ffd86b, #ff7a3d);opacity:0.95;pointer-events:none;transform:translate3d(-50%,-50%,0);box-shadow:0 6px 14px rgba(255,120,40,0.35)}
+
+/* projectile styles */
+.projectile{width:24px;height:24px;border-radius:50%;pointer-events:none}
+.projectile.arrow{background:linear-gradient(90deg,#fff 0%,#ffd86b 100%);box-shadow:0 4px 12px rgba(0,0,0,0.5);transform-origin:center}
+.projectile.spark-proj{background:radial-gradient(circle,#fff5c7,#ff8a3d);box-shadow:0 4px 12px rgba(255,140,60,0.45)}
+.projectile.stone-proj{background:linear-gradient(180deg,#bfc6d0,#7f8896);box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+
+
+/* hero UI */
+.hero{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.3));padding:8px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+.hero .hero-info{display:flex;flex-direction:column}
+.hero-name{font-weight:800}
+.hero-stats{font-size:13px;color:var(--muted)}
+
+/* mana crystals / resource bar */
+.hero-resources{display:flex;gap:6px;margin-top:6px}
+.hero-crystal{width:18px;height:18px;border-radius:4px;background:linear-gradient(180deg,#c9e6ff,#5b9be6);box-shadow:inset 0 -3px 6px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08)}
+
+/* controls */
+.controls .btn{background:linear-gradient(180deg,#ffd86b,#d58c1a);box-shadow:0 6px 18px rgba(213,138,56,0.25)}
+
+/* subtle particle/impact fx */
+.impact{position:absolute;width:60px;height:60px;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 50% 40%, rgba(255,255,255,0.95) 0%, rgba(255,200,60,0.7) 20%, rgba(255,120,20,0.4) 40%, rgba(0,0,0,0) 70%);filter:blur(6px);opacity:0;transform:scale(0);animation:impulse .6s ease-out forwards}
+@keyframes impulse{0%{opacity:1;transform:scale(0.2)}60%{opacity:0.9;transform:scale(1.1)}100%{opacity:0;transform:scale(1.6)}}
+
+/* animation layer fade */
+.animation-layer{z-index:60}
+.animation-layer.visible .anim-element{animation:floatUp .7s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-30px) scale(1.05)}}
+
