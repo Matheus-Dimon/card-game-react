@@ -2,10 +2,10 @@ import React from 'react'
 import Hero from './Hero'
 import BattlefieldLane from './BattlefieldLane'
 import Hand from './Hand'
-import GameLog from './GameLog'
 import AnimationLayer from './AnimationLayer'
 import { useContext } from 'react'
-import GameContext from '../context/GameContext'
+import GameContext from '../context/GameContext.jsx'
+import HeroPowerBadge from './HeroPowerBadge.jsx'
 
 export default function Board() {
   const { state, dispatch } = useContext(GameContext)
@@ -102,13 +102,13 @@ export default function Board() {
     <div className="board-root">
       <div className="board-top">
         <Hero heroKey="player2" name="Enemy" hp={player2.hp} mana={player2.mana} image={player2.heroImage} onClick={() => onTargetClick(null,true,'player2')} />
+        <HeroPowerBadge power={player2.heroPowers}onClick={() => dispatch({ type: "HERO_POWER_CLICK", player: "player2"})} />
         <div className="board-field">
           <BattlefieldLane cards={player2.field.melee} laneType="melee" playerKey="player2" onCardClick={(c)=> onTargetClick(c,false,'player2')} selectedCardId={state.selectedCardId} selectedOwner={selectedOwner} />
           <BattlefieldLane cards={player2.field.ranged} laneType="ranged" playerKey="player2" onCardClick={(c)=> onTargetClick(c,false,'player2')} selectedCardId={state.selectedCardId} selectedOwner={selectedOwner} />
         </div>
-        <GameLog log={log} />
       </div>
-
+      
       <div className="board-center">
         <div className="board-middle-field">
           <BattlefieldLane cards={player1.field.melee} laneType="melee" playerKey="player1" onCardClick={onPlayerFieldCardClick} selectedCardId={state.selectedCardId} selectedOwner={selectedOwner} />
@@ -118,6 +118,7 @@ export default function Board() {
 
       <div className="board-bottom">
         <Hero heroKey="player1" name="Player" hp={player1.hp} mana={player1.mana} image={player1.heroImage} onClick={() => onTargetClick(null,true,'player1')} />
+        <HeroPowerBadge power={player1.heroPowers} onClick={() => dispatch({ type: "HERO_POWER_CLICK", player: "player1"})} />
         <Hand cards={player1.hand} onPlayCard={playCard} />
         <div className="controls">
           <button className="btn" onClick={endTurn}>End Turn</button>

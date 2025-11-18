@@ -100,3 +100,50 @@ body{background:linear-gradient(180deg,#071028 0%, #0b1730 100%); color:#e6eef8;
 .animation-layer.visible .anim-element{animation:floatUp .7s ease-out forwards}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-30px) scale(1.05)}}
 
+.hero-power{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.35));
+  padding:8px 10px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.05);
+  max-width:210px;
+}
+
+.hero-power-icon{
+  background:linear-gradient(180deg,#ffd86b,#d58c1a);
+  padding:6px;
+  border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.hero-power-info{
+  display:flex;
+  flex-direction:column;
+}
+
+.hero-power-name{
+  font-size:14px;
+  font-weight:800;
+  color:#ffd86b;
+  letter-spacing:0.4px;
+}
+
+.hero-power-cost{
+  font-size:12px;
+  font-weight:700;
+  color:#bfe5ff;
+}
+
+.hero-power-desc{
+  font-size:11px;
+  color:#94a3b8;
+  line-height:1.2;
+}
+
+

@@ -1,6 +1,6 @@
 import React, { createContext, useReducer } from 'react'
-import { makeStartingDeck, shuffle } from '../utils/helpers.js'
-import { CARD_OPTIONS, STARTING_HP, STARTING_MANA } from '../utils/constants.js'
+import { makeStartingDeck, makeStartingHeropower, shuffle, HERO_POWERS_PER_HERO } from '../utils/helpers.js'
+import { CARD_OPTIONS, HERO_POWER_OPTIONS, STARTING_HP, STARTING_MANA } from '../utils/constants.js'
 
 export const GameContext = createContext(null)
 
@@ -14,9 +14,10 @@ const initialState = {
     hand: [],
     field: { melee: [], ranged: [] },
     deck: shuffle(makeStartingDeck(CARD_OPTIONS.P1, STARTING_DECK_SIZE)),
-    heroPowers: [],
+    heroPowers: makeStartingHeropower(HERO_POWER_OPTIONS.P1),
     hasUsedHeroPower: false,
   },
+
   player2: {
     hp: STARTING_HP,
     mana: STARTING_MANA,
@@ -24,16 +25,17 @@ const initialState = {
     hand: [],
     field: { melee: [], ranged: [] },
     deck: shuffle(makeStartingDeck(CARD_OPTIONS.P2, STARTING_DECK_SIZE)),
-    heroPowers: [],
+    heroPowers: makeStartingHeropower(HERO_POWER_OPTIONS.P2),
     hasUsedHeroPower: false,
   },
+
   turn: 1,
   gamePhase: 'SETUP',
-  log: ['Bem-vindo! Configure seu deck.'],
   gameOver: false,
   winner: null,
   selectedCardId: null,
   activeHeroPowerId: null,
+
   animation: {
     active: false,
     element: null,
@@ -41,12 +43,11 @@ const initialState = {
     endRect: null,
     callbackAction: null
   },
+
   isAITurnProcessing: false,
 }
 
-/* -------------------------------------------------------------------------- */
-/*                       FUNÇÕES AUXILIARES SEGURO/IMUTÁVEL                   */
-/* -------------------------------------------------------------------------- */
+/* ---------------------- FUNÇÕES AUXILIARES ---------------------- */
 
 function safeLaneCopy(field = {}) {
   return {
@@ -84,17 +85,20 @@ function markAttackerAsUsed(field, attackerId) {
   return safeField
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                  REDUCER                                   */
-/* -------------------------------------------------------------------------- */
-
+/* --------------------------- REDUCER --------------------------- */
 function reducer(state = initialState, action) {
   switch (action.type) {
 
-    /* ------------------------------ INICIAR JOGO ------------------------------ */
+    case 'GO_TO_HERO_POWER_OPTIONS': {
+      return {
+        ...state,
+        gamePhase: 'HERO_POWER_OPTIONS'
+      }
+    }
+
     case 'START_GAME': {
-      const p1 = { ...state.player1, hand: [], deck: [...state.player1.deck] }
-      const p2 = { ...state.player2, hand: [], deck: [...state.player2.deck] }
+      const p1 = { ...state.player1, hand: [], deck: [...state.player1.deck], heroPowers: [...state.player1.heroPowers] }
+      const p2 = { ...state.player2, hand: [], deck: [...state.player2.deck], heroPowers: [...state.player2.heroPowers] }
 
       const draw = (p, n) => {
         const drawn = p.deck.slice(0, n).map(c => ({ ...c, id: `${c.id}_${Date.now()}` }))
@@ -108,7 +112,6 @@ function reducer(state = initialState, action) {
       return { ...state, player1: p1, player2: p2, gamePhase: 'PLAYING' }
     }
 
-    /* ------------------------------ JOGAR CARTA ------------------------------ */
     case 'PLAY_CARD': {
       const { cardId, playerKey } = action.payload || {}
       const player = { ...state[playerKey] }
@@ -129,189 +132,71 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         [playerKey]: { ...player, field },
-        log: [`${card.name} jogado por ${playerKey}`, ...state.log]
       }
     }
 
-    /* ------------------------------ SELEÇÃO DE ATAQUE ------------------------------ */
-    case 'SELECT_ATTACKER': {
-      const { cardId } = action.payload || {}
-      if (cardId === null) return { ...state, selectedCardId: null }
-      return { ...state, selectedCardId: state.selectedCardId === cardId ? null : cardId }
-    }
-
-    /* ------------------------------ COMPRA DE CARTA ------------------------------ */
-    case 'DRAW_CARD': {
-      const { playerKey, count = 1 } = action.payload || {}
+    case 'HERO_POWER': {
+      const { powerId, playerKey } = action.payload || {}
       const player = { ...state[playerKey] }
 
-      const drawn = player.deck.slice(0, count).map(c => ({ ...c, id: `${c.id}_${Date.now()}` }))
-      player.hand = [...player.hand, ...drawn]
-      player.deck = player.deck.slice(count)
-      return { ...state, [playerKey]: player }
-    }
+      const power = player.heroPowers.find(p => p.id === powerId)
+      if (!power) return state
+      if (player.mana < power.cost) return state
+      if (player.hasUsedHeroPower) return state
 
-    /* ------------------------------ FIM DE TURNO ------------------------------ */
-    case 'END_TURN': {
-      const nextTurn = state.turn === 1 ? 2 : 1
-      const nextKey = nextTurn === 1 ? 'player1' : 'player2'
-
-      const next = { ...state[nextKey], field: safeLaneCopy(state[nextKey].field) }
-      next.maxMana = Math.min((next.maxMana || 0) + 1, 10)
-      next.mana = next.maxMana
-
-      next.field.melee = next.field.melee.map(c => ({ ...c, canAttack: true }))
-      next.field.ranged = next.field.ranged.map(c => ({ ...c, canAttack: true }))
-
-      return { ...state, turn: nextTurn, [nextKey]: next }
-    }
-
-    /* ------------------------------ APLICAR DANO ------------------------------ */
-    case 'APPLY_ATTACK_DAMAGE': {
-      const { attackerId, targetId, targetIsHero, damage, playerKey } = action.payload || {}
-      const opponentKey = playerKey === 'player1' ? 'player2' : 'player1'
-
-      const attacker = {
-        ...state[playerKey],
-        field: markAttackerAsUsed(state[playerKey].field, attackerId)
-      }
-
-      let newState = { ...state, [playerKey]: attacker }
-
-      /* --------- HERO TARGET --------- */
-      if (targetIsHero) {
-        const opp = { ...state[opponentKey], field: safeLaneCopy(state[opponentKey].field) }
-        opp.hp = Math.max(0, opp.hp - damage)
-
-        newState = {
-          ...newState,
-          [opponentKey]: opp,
-          log: [`${attackerId} causou ${damage} ao herói ${opponentKey}`, ...state.log]
-        }
-
-        if (opp.hp <= 0) {
-          newState.gameOver = true
-          newState.winner = playerKey
-        }
-
-        return newState
-      }
-
-      /* --------- MINION TARGET --------- */
-      const opp = {
-        ...state[opponentKey],
-        field: applyDamageToField(state[opponentKey].field, targetId, damage)
-      }
-
-      return {
-        ...newState,
-        [opponentKey]: opp,
-        log: [`${attackerId} acertou ${targetId} por ${damage}`, ...state.log]
-      }
-    }
-
-    /* ------------------------------ ANIMAÇÃO ------------------------------ */
-    case 'INITIATE_ANIMATION':
-      return { ...state, animation: { ...action.payload, active: true } }
-
-    case 'END_ANIMATION':
-      return {
-        ...state,
-        animation: { active: false, element: null, startRect: null, endRect: null, callbackAction: null }
-      }
-
-    /* ------------------------------ AI ------------------------------ */
-    case 'SET_AI_PROCESSING':
-      return { ...state, isAITurnProcessing: !!action.payload }
-
-    /* ------------------------------ LOG ------------------------------ */
-    case 'LOG':
-      return { ...state, log: [action.payload, ...state.log] }
-
-    default:
+      // comportamento do poder entra depois
       return state
+    }
+
+    /* --------------------------------------
+       HERO POWER CLICK — TOTALMENTE CORRIGIDO
+       -------------------------------------- */
+       case "HERO_POWER_CLICK": {
+  const { player: playerKey, powerId } = action
+  const player = state[playerKey]
+
+  // Garante que heroPowers existe e é array
+  const heroPowers = Array.isArray(player.heroPowers) ? player.heroPowers : []
+
+  const power = heroPowers.find(p => p.id === powerId)
+
+  if (!power) {
+    console.warn("Poder não encontrado!", { powerId, heroPowers })
+    return state
+  }
+
+  if (player.mana < power.cost) {
+    console.warn("Mana insuficiente!")
+    return state
+  }
+
+  // Se NÃO precisa de alvo → executa direto
+  if (!power.requiresTarget) {
+    return applyHeroPowerEffect(state, playerKey, power)
+  }
+
+  // Se PRECISA alvo → ativa targeting mode
+  return {
+    ...state,
+    targeting: {
+      active: true,
+      playerUsing: playerKey,
+      power
+    },
+    gameLog: [
+      ...(state.gameLog ?? []),
+      `${playerKey} está selecionando um alvo para ${power.name}`
+    ]
   }
 }
+  }
+}
+    
 
-/* -------------------------------------------------------------------------- */
-/*                                 PROVIDER                                    */
-/* -------------------------------------------------------------------------- */
+/* --------------------------- PROVIDER --------------------------- */
 
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState)
-
-  // AI DOS INIMIGOS
-  React.useEffect(() => {
-    if (state.turn !== 2 || state.gamePhase !== 'PLAYING' || state.isAITurnProcessing || state.gameOver)
-      return
-
-    let cancelled = false
-    const delay = ms => new Promise(r => setTimeout(r, ms))
-
-    const runAI = async () => {
-      dispatch({ type: 'SET_AI_PROCESSING', payload: true })
-      await delay(800)
-      if (cancelled) return
-
-      dispatch({ type: 'DRAW_CARD', payload: { playerKey: 'player2', count: 1 } })
-      await delay(400)
-      if (cancelled) return
-
-      let current = state.player2.mana
-      const playable = state.player2.hand.filter(c => c.mana <= current).sort((a, b) => b.mana - a.mana)
-
-      for (const card of playable.slice(0, 2)) {
-        dispatch({ type: 'PLAY_CARD', payload: { cardId: card.id, playerKey: 'player2' } })
-        current -= card.mana
-        await delay(600)
-        if (cancelled) return
-      }
-
-      await delay(300)
-
-      const attackers = [...state.player2.field.melee, ...state.player2.field.ranged]
-        .filter(c => c.canAttack !== false)
-
-      for (const a of attackers) {
-        const enemies = [...state.player1.field.melee, ...state.player1.field.ranged]
-        if (enemies.length > 0) {
-          const weakest = enemies.reduce((x, y) => x.defense < y.defense ? x : y)
-          dispatch({
-            type: 'APPLY_ATTACK_DAMAGE',
-            payload: {
-              attackerId: a.id,
-              targetId: weakest.id,
-              targetIsHero: false,
-              damage: a.attack || 1,
-              playerKey: 'player2'
-            }
-          })
-        } else {
-          dispatch({
-            type: 'APPLY_ATTACK_DAMAGE',
-            payload: {
-              attackerId: a.id,
-              targetId: null,
-              targetIsHero: true,
-              damage: a.attack || 1,
-              playerKey: 'player2'
-            }
-          })
-        }
-        await delay(400)
-        if (cancelled) return
-      }
-
-      await delay(600)
-      if (!cancelled) {
-        dispatch({ type: 'END_TURN' })
-      }
-      dispatch({ type: 'SET_AI_PROCESSING', payload: false })
-    }
-
-    runAI()
-    return () => { cancelled = true }
-  }, [state.turn, state.gamePhase])
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>

@@ -1,5 +1,5 @@
 import React, { createContext, useReducer } from 'react'
-import { makeStartingDeck, shuffle } from '../utils/helpers.js'
+import { makeStartingDeck,applyHeroPowerEffect,shuffle } from '../utils/helpers.js'
 import { CARD_OPTIONS, STARTING_HP, STARTING_MANA } from '../utils/constants.js'
 
 export const GameContext = createContext(null)
@@ -14,9 +14,10 @@ const initialState = {
     hand: [],
     field: { melee: [], ranged: [] },
     deck: shuffle(makeStartingDeck(CARD_OPTIONS.P1, STARTING_DECK_SIZE)),
-    heroPowers: [],
+    heroPowers: makeStartingHeropower(HERO_POWER_OPTIONS.P1),
     hasUsedHeroPower: false,
   },
+
   player2: {
     hp: STARTING_HP,
     mana: STARTING_MANA,
@@ -24,12 +25,12 @@ const initialState = {
     hand: [],
     field: { melee: [], ranged: [] },
     deck: shuffle(makeStartingDeck(CARD_OPTIONS.P2, STARTING_DECK_SIZE)),
-    heroPowers: [],
+    heroPowers: makeStartingHeropower(HERO_POWER_OPTIONS.P2),
     hasUsedHeroPower: false,
   },
+
   turn: 1,
   gamePhase: 'SETUP', // SETUP -> PLAYING -> GAME_OVER
-  log: ['Bem-vindo! Configure seu deck.'],
   gameOver: false,
   winner: null,
   selectedCardId: null,

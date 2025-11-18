@@ -9,8 +9,8 @@ export default function DeckSetup({ onStart }) {
     setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
   }
 
-  const start = () => {
-    if (selected.length < 5) return alert('Escolha ao menos 5 cartas para iniciar (demo rule).')
+  const hpselect = () => {
+    if (selected.length < 8) return alert('Escolha ao menos 8 cartas para iniciar (demo rule).')
     onStart(selected)
   }
 
@@ -25,7 +25,7 @@ export default function DeckSetup({ onStart }) {
           </div>
         ))}
       </div>
-      <button onClick={start} className="btn">Start Game</button>
+      <button onClick={hpselect} className="btn">Hero power select</button>
     </div>
   )
 }
