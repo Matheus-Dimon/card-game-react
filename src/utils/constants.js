@@ -1,21 +1,37 @@
+// Import local images
+import guerreiro1 from '../images/guerreiro1.png'
+import guerreiro2 from '../images/guerreiro2.png'
+import guerreiro3 from '../images/guerreiro3.png'
+import guerreiro6 from '../images/guerreiro6.png.png'
+import arqueiro from '../images/arqueiro.png'
+import arqueiro2 from '../images/arqueiro2.png'
+import arqueiro3 from '../images/arqueiro3.png'
+import arqueiro4 from '../images/arqueiro4.png'
+import clerigo from '../images/clerigo.png'
+import clerigo2 from '../images/clerigo2.png'
+import clerigo3 from '../images/clerigo3.png'
+import clerigo4 from '../images/clerigo4.png'
+import clerigo5 from '../images/clerigo5.png'
+
 export const STARTING_HP = 30
 export const STARTING_MANA = 1
 export const MAX_MANA = 10
 
-// Imagens temáticas medievais dark para as cartas
+// Imagens locais para as cartas
 export const CARD_IMAGE_URLS = {
-  WARRIOR: 'https://images.unsplash.com/photo-1533613220915-609f661a6fe1?w=200&h=300&fit=crop&q=80',
-  WARRIOR_2: 'https://images.unsplash.com/photo-1589561253898-768105ca91a8?w=200&h=300&fit=crop&q=80',
-  WARRIOR_3: 'https://images.unsplash.com/photo-1605792657660-596af9009e82?w=200&h=300&fit=crop&q=80',
-  ARCHER: 'https://images.unsplash.com/photo-1598618443855-232ee0f819f2?w=200&h=300&fit=crop&q=80',
-  ARCHER_2: 'https://images.unsplash.com/photo-1571847490872-b62d42e6f7e0?w=200&h=300&fit=crop&q=80',
-  ARCHER_3: 'https://images.unsplash.com/photo-1509099863731-ef4bff19e808?w=200&h=300&fit=crop&q=80',
-  CLERIC: 'https://images.unsplash.com/photo-1534531173927-aeb928d54385?w=200&h=300&fit=crop&q=80',
-  CLERIC_2: 'https://images.unsplash.com/photo-1532798442725-41036acc7489?w=200&h=300&fit=crop&q=80',
-  CLERIC_3: 'https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=200&h=300&fit=crop&q=80',
-  DARK_WARRIOR: 'https://images.unsplash.com/photo-1609743522471-83c84ce23e32?w=200&h=300&fit=crop&q=80',
-  DARK_MAGE: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=200&h=300&fit=crop&q=80',
-  BEAST: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop&q=80',
+  WARRIOR: guerreiro1,
+  WARRIOR_2: guerreiro2,
+  WARRIOR_3: guerreiro3,
+  ARCHER: arqueiro,
+  ARCHER_2: arqueiro2,
+  ARCHER_3: arqueiro3,
+  CLERIC: clerigo,
+  CLERIC_2: clerigo2,
+  CLERIC_3: clerigo3,
+  // Using additional images for variety
+  DARK_WARRIOR: guerreiro6,
+  DARK_MAGE: clerigo4,
+  BEAST: arqueiro4,
 }
 
 export const UNIT_TYPES = {
@@ -176,22 +192,22 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p1_fireblast",
       name: "Fireblast",
-      cost: 1,
+      cost: 2,
       requiresTarget: true,
       effect: "damage",
-      amount: 2,
+      amount: 3,
       icon: "🔥",
-      description: "Causa 2 de dano a um alvo"
+      description: "Causa 3 de dano a um alvo"
     },
     {
-      id: "p1_heal",
+      id: "p1_divine_healing",
       name: "Cura Divina",
-      cost: 1,
-      requiresTarget: false,
-      effect: "heal",
-      amount: 2,
+      cost: 2,
+      requiresTarget: true,
+      effect: "heal_target",
+      amount: 4,
       icon: "✨",
-      description: "Restaura 2 de vida"
+      description: "Cura 4 de vida a qualquer alvo (herói ou unidade)"
     },
     {
       id: "p1_armor",
@@ -199,62 +215,162 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: false,
       effect: "armor",
-      amount: 2,
+      amount: 3,
       icon: "🛡️",
-      description: "Ganha 2 de armadura"
+      description: "Ganha 3 de armadura"
     },
     {
       id: "p1_draw",
       name: "Concentração",
-      cost: 1,
+      cost: 2,
       requiresTarget: false,
       effect: "draw",
-      amount: 1,
+      amount: 2,
       icon: "📖",
-      description: "Compra 1 carta"
+      description: "Compra 2 cartas"
+    },
+    {
+      id: "p1_charge",
+      name: "Ímpeto",
+      cost: 2,
+      requiresTarget: false,
+      effect: "charge_melee",
+      amount: 1,
+      icon: "⚡",
+      description: "Suas unidades corpo a corpo ganham Charge neste turno"
+    },
+    {
+      id: "p1_buff_all",
+      name: "Bênção",
+      cost: 3,
+      requiresTarget: false,
+      effect: "buff_all",
+      amount: 2,
+      icon: "💪",
+      description: "+2/+2 a todas suas unidades"
+    },
+    {
+      id: "p1_damage_all",
+      name: "Tempestade",
+      cost: 3,
+      requiresTarget: false,
+      effect: "damage_all_enemies",
+      amount: 2,
+      icon: "⚡",
+      description: "Causa 2 de dano a todas unidades inimigas"
+    },
+    {
+      id: "p1_mana_boost",
+      name: "Cristal Arcano",
+      cost: 0,
+      requiresTarget: false,
+      effect: "mana_boost",
+      amount: 2,
+      icon: "💎",
+      description: "Ganha 2 de mana temporária neste turno"
+    },
+    {
+      id: "p1_resurrect",
+      name: "Ressurreição",
+      cost: 4,
+      requiresTarget: false,
+      effect: "draw_from_graveyard",
+      amount: 1,
+      icon: "🔄",
+      description: "Retorna uma unidade aleatória morta para sua mão"
     },
   ],
 
   P2: [
     {
-      id: "p2_shadow",
-      name: "Shadow Bolt",
+      id: "p2_fireblast",
+      name: "Fireblast",
       cost: 2,
       requiresTarget: true,
       effect: "damage",
-      amount: 2,
-      icon: "🌑",
-      description: "Causa 2 de dano a um alvo"
-    },
-    {
-      id: "p2_lifedrain",
-      name: "Drenar Vida",
-      cost: 3,
-      requiresTarget: false,
-      effect: "heal",
       amount: 3,
-      icon: "💀",
-      description: "Restaura 3 de vida"
+      icon: "🔥",
+      description: "Causa 3 de dano a um alvo"
     },
     {
-      id: "p2_curse",
-      name: "Maldição",
-      cost: 1,
+      id: "p2_divine_healing",
+      name: "Cura Divina",
+      cost: 2,
       requiresTarget: true,
-      effect: "damage",
-      amount: 1,
-      icon: "☠️",
-      description: "Causa 1 de dano a um alvo"
+      effect: "heal_target",
+      amount: 4,
+      icon: "✨",
+      description: "Cura 4 de vida a qualquer alvo (herói ou unidade)"
     },
     {
-      id: "p2_summon",
-      name: "Invocar",
+      id: "p2_armor",
+      name: "Fortificar",
+      cost: 1,
+      requiresTarget: false,
+      effect: "armor",
+      amount: 3,
+      icon: "🛡️",
+      description: "Ganha 3 de armadura"
+    },
+    {
+      id: "p2_draw",
+      name: "Concentração",
       cost: 2,
       requiresTarget: false,
       effect: "draw",
+      amount: 2,
+      icon: "📖",
+      description: "Compra 2 cartas"
+    },
+    {
+      id: "p2_charge",
+      name: "Ímpeto",
+      cost: 2,
+      requiresTarget: false,
+      effect: "charge_melee",
       amount: 1,
-      icon: "👻",
-      description: "Compra 1 carta"
+      icon: "⚡",
+      description: "Suas unidades corpo a corpo ganham Charge neste turno"
+    },
+    {
+      id: "p2_buff_all",
+      name: "Bênção",
+      cost: 3,
+      requiresTarget: false,
+      effect: "buff_all",
+      amount: 2,
+      icon: "💪",
+      description: "+2/+2 a todas suas unidades"
+    },
+    {
+      id: "p2_damage_all",
+      name: "Tempestade",
+      cost: 3,
+      requiresTarget: false,
+      effect: "damage_all_enemies",
+      amount: 2,
+      icon: "⚡",
+      description: "Causa 2 de dano a todas unidades inimigas"
+    },
+    {
+      id: "p2_mana_boost",
+      name: "Cristal Arcano",
+      cost: 0,
+      requiresTarget: false,
+      effect: "mana_boost",
+      amount: 2,
+      icon: "💎",
+      description: "Ganha 2 de mana temporária neste turno"
+    },
+    {
+      id: "p2_resurrect",
+      name: "Ressurreição",
+      cost: 4,
+      requiresTarget: false,
+      effect: "draw_from_graveyard",
+      amount: 1,
+      icon: "🔄",
+      description: "Retorna uma unidade aleatória morta para sua mão"
     },
   ]
 }
