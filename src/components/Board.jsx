@@ -7,13 +7,95 @@ import GameContext from '../context/GameContext.jsx'
 import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
 
+// Sistema de sons
+const playSound = (type) => {
+  try {
+    const sounds = {
+      cardPlay: () => {
+        const audio = new Audio()
+        audio.volume = 0.3
+        const ctx = new AudioContext()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.frequency.value = 200
+        gain.gain.setValueAtTime(0.3, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.3)
+      },
+      attack: () => {
+        const ctx = new AudioContext()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sawtooth'
+        osc.frequency.setValueAtTime(100, ctx.currentTime)
+        osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.2)
+        gain.gain.setValueAtTime(0.4, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.2)
+      },
+      impact: () => {
+        const ctx = new AudioContext()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'square'
+        osc.frequency.value = 80
+        gain.gain.setValueAtTime(0.5, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.15)
+      },
+      heroPower: () => {
+        const ctx = new AudioContext()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(400, ctx.currentTime)
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.3)
+        gain.gain.setValueAtTime(0.3, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.3)
+      },
+      victory: () => {
+        const ctx = new AudioContext()
+        const notes = [523, 659, 784, 1047]
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator()
+          const gain = ctx.createGain()
+          osc.connect(gain)
+          gain.connect(ctx.destination)
+          osc.frequency.value = freq
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.15)
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.4)
+          osc.start(ctx.currentTime + i * 0.15)
+          osc.stop(ctx.currentTime + i * 0.15 + 0.4)
+        })
+      }
+    }
+    
+    if (sounds[type]) sounds[type]()
+  } catch (err) {
+    console.log('Audio context error:', err)
+  }
+}
+
 export default function Board() {
   const { state, dispatch } = useContext(GameContext)
   const { player1, player2, turn, animation, targeting, gameOver, winner } = state
 
   const playCard = (card) => {
-    // Só pode jogar no seu turno
     if (turn !== 1) return
+    playSound('cardPlay')
     dispatch({ type: 'PLAY_CARD', payload: { cardId: card.id, playerKey: 'player1' } })
   }
 
@@ -23,78 +105,61 @@ export default function Board() {
   }
 
   const onPlayerFieldCardClick = (card) => {
-    // Só permite selecionar durante o turno do player1
     if (turn !== 1) return
-    
-    // Não permite selecionar se estiver em modo targeting de hero power
     if (targeting.active) return
-    
-    // Só permite selecionar cartas que podem atacar
     if (!card.canAttack) return
 
-    // Se não há atacante selecionado, seleciona este
     if (!state.selectedCardId) {
       dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: card.id } })
       return
     }
 
-    // Se clicou no atacante já selecionado, cancela seleção
     if (state.selectedCardId === card.id) {
       dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
       return
     }
 
-    // Se clicou em outra carta própria, troca o atacante
     dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: card.id } })
   }
 
   const onTargetClick = (target, isHero = false, targetHeroKey = null) => {
-    // Se estiver em modo targeting de hero power
     if (targeting.active && targeting.playerUsing === 'player1') {
       handleHeroPowerTarget(target, isHero, targetHeroKey)
       return
     }
 
-    // Modo ataque normal
     if (turn !== 1) return
     
     const attackerId = state.selectedCardId
     if (!attackerId) return
 
-    // Encontra o atacante
     const attacker = [...player1.field.melee, ...player1.field.ranged].find(c => c.id === attackerId)
     if (!attacker || !attacker.canAttack) {
       dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
       return
     }
 
-    // REGRA: Verifica se alvo é válido
     if (!isValidTarget(attacker, target, isHero, targetHeroKey)) {
       return
     }
 
-    // Processa ataque com animação
+    playSound('attack')
     processAttack(attacker, target, isHero, targetHeroKey)
   }
 
   const isValidTarget = (attacker, target, isHero, targetHeroKey) => {
-    // Não pode atacar a si mesmo ou aliados
     if (targetHeroKey === 'player1' || (target && isCardOwner(target.id, 'player1'))) {
       return false
     }
 
-    // REGRA: Cartas MELEE só podem atacar cartas MELEE ou o hero se não houver MELEE inimigo
     if (attacker.type.lane === 'melee') {
       if (isHero) {
-        // Só pode atacar hero se não houver minions melee inimigos
         return player2.field.melee.length === 0
       } else {
-        // Melee só pode atacar melee
         return target && target.type.lane === 'melee'
       }
     }
 
-    // REGRA: Cartas RANGED podem atacar qualquer coisa (ranged, melee ou hero)
     if (attacker.type.lane === 'ranged') {
       return true
     }
@@ -110,7 +175,6 @@ export default function Board() {
       : (target ? document.querySelector(`[data-card-id="${target.id}"]`) : null)
 
     if (!attackerEl || !targetEl) {
-      // Fallback sem animação
       dispatch({ 
         type: 'APPLY_ATTACK_DAMAGE', 
         payload: { 
@@ -128,7 +192,6 @@ export default function Board() {
     const startRect = attackerEl.getBoundingClientRect()
     const endRect = targetEl.getBoundingClientRect()
 
-    // Determina tipo de projétil baseado no tipo de unidade
     let projectile = 'stone'
     if (attacker.type?.name?.toLowerCase().includes('arqueiro')) projectile = 'arrow'
     if (attacker.type?.name?.toLowerCase().includes('cler')) projectile = 'spark'
@@ -162,7 +225,6 @@ export default function Board() {
   const handleHeroPowerTarget = (target, isHero, targetHeroKey) => {
     const { power, playerUsing } = targeting
 
-    // Valida se o alvo é do oponente
     if (isHero && targetHeroKey === playerUsing) {
       dispatch({ type: 'CANCEL_TARGETING' })
       return
@@ -173,6 +235,7 @@ export default function Board() {
       return
     }
 
+    playSound('heroPower')
     dispatch({
       type: 'APPLY_HERO_POWER_WITH_TARGET',
       payload: {
@@ -199,38 +262,45 @@ export default function Board() {
 
   const selectedOwner = findOwnerOfCard(state.selectedCardId)
 
-  // Determina se hero é targetável
   const isPlayer2HeroTargetable = () => {
     if (targeting.active && targeting.playerUsing === 'player1') return true
     if (state.selectedCardId && selectedOwner === 'player1') {
       const attacker = [...player1.field.melee, ...player1.field.ranged].find(c => c.id === state.selectedCardId)
       if (!attacker) return false
       
-      // RANGED pode atacar sempre, MELEE só se não houver melee inimigo
       if (attacker.type.lane === 'ranged') return true
       if (attacker.type.lane === 'melee' && player2.field.melee.length === 0) return true
     }
     return false
   }
 
+  React.useEffect(() => {
+    if (gameOver && winner === 'player1') {
+      playSound('victory')
+    }
+  }, [gameOver, winner])
+
   return (
     <div className="board-root">
-      <div className="board-top">
-        <Hero 
-          heroKey="player2" 
-          name="Enemy" 
-          hp={player2.hp} 
-          mana={player2.mana} 
-          armor={player2.armor}
-          image={player2.heroImage} 
-          onClick={() => onTargetClick(null, true, 'player2')} 
-          isTargetable={isPlayer2HeroTargetable()}
-        />
-        <HeroPowerBadge 
-          powers={player2.heroPowers}
-          onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})} 
-        />
-        <div className="board-field">
+      <div className="board-section board-top">
+        <div className="hero-area">
+          <Hero 
+            heroKey="player2" 
+            name="Enemy" 
+            hp={player2.hp} 
+            mana={player2.mana} 
+            armor={player2.armor}
+            image="https://images.unsplash.com/photo-1589561253898-768105ca91a8?w=200&h=200&fit=crop"
+            onClick={() => onTargetClick(null, true, 'player2')} 
+            isTargetable={isPlayer2HeroTargetable()}
+          />
+          <HeroPowerBadge 
+            powers={player2.heroPowers}
+            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})} 
+          />
+        </div>
+        
+        <div className="lanes-vertical">
           <BattlefieldLane 
             cards={player2.field.melee} 
             laneType="melee" 
@@ -252,17 +322,10 @@ export default function Board() {
         </div>
       </div>
       
-      <div className="board-center">
-        <div className="board-middle-field">
-          <BattlefieldLane 
-            cards={player1.field.melee} 
-            laneType="melee" 
-            playerKey="player1" 
-            onCardClick={onPlayerFieldCardClick} 
-            selectedCardId={state.selectedCardId} 
-            selectedOwner={selectedOwner}
-            targetingActive={false}
-          />
+      <div className="board-divider" />
+
+      <div className="board-section board-bottom">
+        <div className="lanes-vertical">
           <BattlefieldLane 
             cards={player1.field.ranged} 
             laneType="ranged" 
@@ -272,29 +335,40 @@ export default function Board() {
             selectedOwner={selectedOwner}
             targetingActive={false}
           />
+          <BattlefieldLane 
+            cards={player1.field.melee} 
+            laneType="melee" 
+            playerKey="player1" 
+            onCardClick={onPlayerFieldCardClick} 
+            selectedCardId={state.selectedCardId} 
+            selectedOwner={selectedOwner}
+            targetingActive={false}
+          />
+        </div>
+
+        <div className="hero-area">
+          <Hero 
+            heroKey="player1" 
+            name="Player" 
+            hp={player1.hp} 
+            mana={player1.mana} 
+            armor={player1.armor}
+            image="https://images.unsplash.com/photo-1605792657660-596af9009e82?w=200&h=200&fit=crop"
+            onClick={() => onTargetClick(null, true, 'player1')} 
+          />
+          <HeroPowerBadge 
+            powers={player1.heroPowers} 
+            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})} 
+          />
         </div>
       </div>
 
-      <div className="board-bottom">
-        <Hero 
-          heroKey="player1" 
-          name="Player" 
-          hp={player1.hp} 
-          mana={player1.mana} 
-          armor={player1.armor}
-          image={player1.heroImage} 
-          onClick={() => onTargetClick(null, true, 'player1')} 
-        />
-        <HeroPowerBadge 
-          powers={player1.heroPowers} 
-          onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})} 
-        />
-        <Hand cards={player1.hand} onPlayCard={playCard} />
-        <div className="controls">
-          <button className="btn" onClick={endTurn} disabled={turn !== 1}>
-            {turn === 1 ? 'End Turn' : 'Enemy Turn...'}
-          </button>
-        </div>
+      <Hand cards={player1.hand} onPlayCard={playCard} />
+      
+      <div className="controls">
+        <button className="btn" onClick={endTurn} disabled={turn !== 1}>
+          {turn === 1 ? 'End Turn' : 'Enemy Turn...'}
+        </button>
       </div>
 
       {targeting.active && targeting.playerUsing === 'player1' && (
@@ -310,6 +384,7 @@ export default function Board() {
 
       <AnimationLayer animation={animation} onComplete={(cb) => {
         try {
+          playSound('impact')
           dispatch({ type: 'END_ANIMATION' })
           if (cb) dispatch(cb)
         } catch (err) {
