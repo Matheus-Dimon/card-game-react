@@ -1,7 +1,10 @@
+import React from 'react'
+
 export default function Hero({
   name = 'Hero',
   hp = 30,
   mana = 0,
+  armor = 0,
   image,
   onClick,
   isTargetable = false,
@@ -23,7 +26,14 @@ export default function Hero({
         <div className="hero-name">{name}</div>
 
         <div className="hero-stats">
-          HP: <strong>{hp}</strong>
+          <div className="stat-hp">
+            ❤️ <strong>{hp}</strong>
+          </div>
+          {armor > 0 && (
+            <div className="stat-armor">
+              🛡️ <strong>{armor}</strong>
+            </div>
+          )}
         </div>
 
         <div className="hero-resources" aria-hidden>
