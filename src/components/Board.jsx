@@ -6,14 +6,13 @@ import AnimationLayer from './AnimationLayer'
 import GameContext from '../context/GameContext.jsx'
 import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
+import InstructionsPanel from './InstructionsPanel.jsx'
 
-// Sistema de sons
+// Sistema de sons MELHORADO
 const playSound = (type) => {
   try {
     const sounds = {
       cardPlay: () => {
-        const audio = new Audio()
-        audio.volume = 0.3
         const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -25,17 +24,46 @@ const playSound = (type) => {
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.3)
       },
-      attack: () => {
+      // Som de ESPADA para ataques melee
+      meleeAttack: () => {
         const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
+        const filter = ctx.createBiquadFilter()
+        
+        filter.type = 'bandpass'
+        filter.frequency.value = 800
+        
+        osc.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+        
+        osc.type = 'sawtooth'
+        osc.frequency.setValueAtTime(300, ctx.currentTime)
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.15)
+        
+        gain.gain.setValueAtTime(0.5, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+        
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.15)
+      },
+      // Som de FLECHA para ataques ranged
+      rangedAttack: () => {
+        const ctx = new AudioContext()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        
         osc.connect(gain)
         gain.connect(ctx.destination)
-        osc.type = 'sawtooth'
-        osc.frequency.setValueAtTime(100, ctx.currentTime)
-        osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.2)
+        
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(2000, ctx.currentTime)
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.2)
+        
         gain.gain.setValueAtTime(0.4, ctx.currentTime)
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
+        
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.2)
       },
@@ -143,7 +171,13 @@ export default function Board() {
       return
     }
 
-    playSound('attack')
+    // Toca som apropriado baseado no tipo de ataque
+    if (attacker.type.lane === 'melee') {
+      playSound('meleeAttack')
+    } else {
+      playSound('rangedAttack')
+    }
+    
     processAttack(attacker, target, isHero, targetHeroKey)
   }
 
@@ -154,9 +188,14 @@ export default function Board() {
 
     if (attacker.type.lane === 'melee') {
       if (isHero) {
+        // MELEE pode atacar hero se não houver nenhuma unidade MELEE inimiga
         return player2.field.melee.length === 0
       } else {
-        return target && target.type.lane === 'melee'
+        // MELEE pode atacar MELEE sempre
+        if (target && target.type.lane === 'melee') return true
+        // MELEE pode atacar RANGED se não houver MELEE inimigo
+        if (target && target.type.lane === 'ranged' && player2.field.melee.length === 0) return true
+        return false
       }
     }
 
@@ -281,7 +320,8 @@ export default function Board() {
   }, [gameOver, winner])
 
   return (
-    <div className="board-root">
+    <div className="board-container">
+      <div className="board-root">
       <div className="board-section board-top">
         <div className="hero-area">
           <Hero 
@@ -302,8 +342,8 @@ export default function Board() {
         
         <div className="lanes-vertical">
           <BattlefieldLane 
-            cards={player2.field.melee} 
-            laneType="melee" 
+            cards={player2.field.ranged} 
+            laneType="ranged" 
             playerKey="player2" 
             onCardClick={(c) => onTargetClick(c, false, 'player2')} 
             selectedCardId={state.selectedCardId} 
@@ -311,8 +351,8 @@ export default function Board() {
             targetingActive={targeting.active && targeting.playerUsing === 'player1'}
           />
           <BattlefieldLane 
-            cards={player2.field.ranged} 
-            laneType="ranged" 
+            cards={player2.field.melee} 
+            laneType="melee" 
             playerKey="player2" 
             onCardClick={(c) => onTargetClick(c, false, 'player2')} 
             selectedCardId={state.selectedCardId} 
@@ -327,8 +367,8 @@ export default function Board() {
       <div className="board-section board-bottom">
         <div className="lanes-vertical">
           <BattlefieldLane 
-            cards={player1.field.ranged} 
-            laneType="ranged" 
+            cards={player1.field.melee} 
+            laneType="melee" 
             playerKey="player1" 
             onCardClick={onPlayerFieldCardClick} 
             selectedCardId={state.selectedCardId} 
@@ -336,8 +376,8 @@ export default function Board() {
             targetingActive={false}
           />
           <BattlefieldLane 
-            cards={player1.field.melee} 
-            laneType="melee" 
+            cards={player1.field.ranged} 
+            laneType="ranged" 
             playerKey="player1" 
             onCardClick={onPlayerFieldCardClick} 
             selectedCardId={state.selectedCardId} 
@@ -395,5 +435,8 @@ export default function Board() {
 
       {gameOver && <GameOverModal winner={winner} onRestart={() => dispatch({type: 'RESTART_GAME'})} />}
     </div>
+    
+    <InstructionsPanel />
+  </div>
   )
 }

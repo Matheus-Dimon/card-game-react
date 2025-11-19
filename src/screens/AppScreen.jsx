@@ -3,34 +3,48 @@ import { GameProvider } from '../context/GameContext'
 import Board from '../components/Board'
 import DeckSetup from '../components/DeckSetup'
 import HeroPowerSetup from '../components/HeroPowerSetup'
+import PassiveSkillsSetup from '../components/PassiveSkillsSetup'
 import GameContext from '../context/GameContext'
 import ErrorBoundary from '../components/ErrorBoundary'
 import GlobalErrorCatcher from '../components/GlobalErrorCatcher'
+import BackgroundMusic from '../components/BackgroundMusic'
 
 function InnerApp() {
   const { state, dispatch } = useContext(GameContext)
 
+  if (state.gamePhase === 'PASSIVE_SKILLS') {
+    return (
+      <>
+        <PassiveSkillsSetup />
+        <BackgroundMusic />
+      </>
+    )
+  }
+
   if (state.gamePhase === 'SETUP') {
     return (
-      <DeckSetup
-        onStart={() =>
-          dispatch({ type: 'GO_TO_HERO_POWER_OPTIONS' })
-        }
-      />
+      <>
+        <DeckSetup />
+        <BackgroundMusic />
+      </>
     )
   }
 
   if (state.gamePhase === 'HERO_POWER_OPTIONS') {
     return (
-      <HeroPowerSetup
-        onStart={() =>
-          dispatch({ type: 'START_GAME' })
-        }
-      />
+      <>
+        <HeroPowerSetup />
+        <BackgroundMusic />
+      </>
     )
   }
 
-  return <Board />
+  return (
+    <>
+      <Board />
+      <BackgroundMusic />
+    </>
+  )
 }
 
 export default function AppScreen() {

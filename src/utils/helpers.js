@@ -1,3 +1,5 @@
+import { HERO_PASSIVE_OPTIONS, STARTING_HP, STARTING_MANA, CARD_OPTIONS } from './constants.js'
+
 export const shuffle = (arr) => {
   const a = arr.slice()
   for (let i = a.length - 1; i > 0; i--) {
@@ -5,6 +7,14 @@ export const shuffle = (arr) => {
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+
+// Função NOVA: monta deck na ordem escolhida pelo jogador
+export const makeOrderedDeck = (pool, selectedIds) => {
+  return selectedIds.map(id => {
+    const card = pool.find(c => c.id === id)
+    return {...card}
+  })
 }
 
 export const makeStartingDeck = (pool, size) => {
@@ -18,11 +28,9 @@ export const makeStartingDeck = (pool, size) => {
 }
 
 export const makeStartingHeropower = (pool) => {
-  // retorna poderes fixos, clonados corretamente
   return pool.map(p => ({ ...p }))
 }
 
-// quantidade de hero powers por herói (fixo para todos)
 export const HERO_POWERS_PER_HERO = 2
 
 export function applyHeroPowerEffect(state, playerKey, power) {
@@ -31,7 +39,6 @@ export function applyHeroPowerEffect(state, playerKey, power) {
   const opponent = state[opponentKey]
 
   switch (power.type) {
-
     case "damage": {
       return {
         ...state,
@@ -74,6 +81,40 @@ export function applyHeroPowerEffect(state, playerKey, power) {
     default:
       return state
   }
+}
+
+// Aplica efeitos das habilidades passivas
+export function applyPassiveEffects(player, passiveSkillIds) {
+  const passives = passiveSkillIds.map(id => 
+    HERO_PASSIVE_OPTIONS.P1.find(p => p.id === id) || 
+    HERO_PASSIVE_OPTIONS.P2.find(p => p.id === id)
+  ).filter(Boolean)
+
+  let modifiedPlayer = {...player}
+
+  passives.forEach(passive => {
+    const { effect } = passive
+    
+    switch (effect.stat) {
+      case 'startingHP':
+        modifiedPlayer.hp = STARTING_HP + effect.value
+        break
+      
+      case 'startingArmor':
+        modifiedPlayer.armor = effect.value
+        break
+      
+      case 'maxMana':
+        modifiedPlayer.maxMana = STARTING_MANA + effect.value
+        modifiedPlayer.mana = modifiedPlayer.maxMana
+        break
+      
+      default:
+        break
+    }
+  })
+
+  return modifiedPlayer
 }
 
 export const uid = (prefix = '') =>
