@@ -151,71 +151,62 @@ function reducer(state = initialState, action) {
   }
 }
 
-export function GameProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+React.useEffect(() => {
+  if (state.turn !== 2 || state.gamePhase !== 'PLAYING' || state.isAITurnProcessing || state.gameOver) return;
 
-  // Simple AI runner for player2: plays up to two cards and attacks, then ends turn.
-  React.useEffect(() => {
-    if (state.turn !== 2 || state.gamePhase !== 'PLAYING' || state.isAITurnProcessing || state.gameOver) return
+  let cancelled = false;
+  const delay = ms => new Promise(r => setTimeout(r, ms));
 
-    let cancelled = false
-    const delay = (ms) => new Promise((r) => setTimeout(r, ms))
+  const runAI = async () => {
+    dispatch({ type: 'SET_AI_PROCESSING', payload: true });
+    await delay(800);
+    if (cancelled) return;
 
-    const runAI = async () => {
-      dispatch({ type: 'SET_AI_PROCESSING', payload: true })
-      await delay(800)
-      if (cancelled) return
+    dispatch({ type: 'DRAW_CARD', payload: { playerKey: 'player2', count: 1 } });
+    await delay(400);
+    if (cancelled) return;
 
-      // Draw card at start of turn
-      dispatch({ type: 'DRAW_CARD', payload: { playerKey: 'player2', count: 1 } })
-      await delay(400)
-      if (cancelled) return
+    // Snapshot atualizado do state
+    const getLatestState = () => JSON.parse(JSON.stringify(state));
 
-      // Get current state snapshot for AI logic
-      let currentMana = state.player2.mana
-      const playable = state.player2.hand.filter(c => c.mana <= currentMana).sort((a,b)=>b.mana-a.mana)
-      const toPlay = playable.slice(0,2)
-      
-      for (const card of toPlay) {
-        if (cancelled) break
-        dispatch({ type: 'PLAY_CARD', payload: { cardId: card.id, playerKey: 'player2' } })
-        currentMana -= card.mana
-        await delay(600)
-      }
+    let currentMana = state.player2.mana;
 
-      await delay(500)
-      if (cancelled) return
+    const playable = state.player2.hand.filter(c => c.mana <= currentMana).sort((a,b)=>b.mana-a.mana);
+    const toPlay = playable.slice(0, 2);
 
-      // Attack phase: each attacker attacks weakest enemy or hero
-      const attackers = [...state.player2.field.melee, ...state.player2.field.ranged].filter(c => c.canAttack !== false)
-      for (const attacker of attackers) {
-        if (cancelled) break
-        const enemyField = [...state.player1.field.melee, ...state.player1.field.ranged]
-        if (enemyField.length > 0) {
-          // target weakest
-          const target = enemyField.reduce((a,b)=> (a.defense < b.defense ? a : b))
-          dispatch({ type: 'APPLY_ATTACK_DAMAGE', payload: { attackerId: attacker.id, targetId: target.id, targetIsHero: false, damage: attacker.attack || 1, playerKey: 'player2' } })
-        } else {
-          dispatch({ type: 'APPLY_ATTACK_DAMAGE', payload: { attackerId: attacker.id, targetId: null, targetIsHero: true, damage: attacker.attack || 1, playerKey: 'player2' } })
-        }
-        await delay(400)
-      }
-
-      await delay(600)
-      if (!cancelled) {
-        dispatch({ type: 'END_TURN' })
-        dispatch({ type: 'SET_AI_PROCESSING', payload: false })
-      }
+    for (const card of toPlay) {
+      if (cancelled) break;
+      dispatch({ type: 'PLAY_CARD', payload: { cardId: card.id, playerKey: 'player2' } });
+      currentMana -= card.mana;
+      await delay(600);
     }
 
-    runAI()
+    await delay(500);
+    if (cancelled) return;
 
-    return () => { cancelled = true }
-  }, [state.turn, state.gamePhase])
+    const latestState = getLatestState();
+    const attackers = [...latestState.player2.field.melee, ...latestState.player2.field.ranged]
+      .filter(c => c.canAttack !== false);
 
-  return (
-    <GameContext.Provider value={{ state, dispatch }}>{children}</GameContext.Provider>
-  )
-}
+    for (const attacker of attackers) {
+      if (cancelled) break;
+      const enemyField = [...latestState.player1.field.melee, ...latestState.player1.field.ranged];
+      if (enemyField.length > 0) {
+        const target = enemyField.reduce((a,b)=> (a.defense < b.defense ? a : b));
+        dispatch({ type: 'APPLY_ATTACK_DAMAGE', payload: { attackerId: attacker.id, targetId: target.id, targetIsHero: false, damage: attacker.attack || 1, playerKey: 'player2' } });
+      } else {
+        dispatch({ type: 'APPLY_ATTACK_DAMAGE', payload: { attackerId: attacker.id, targetId: null, targetIsHero: true, damage: attacker.attack || 1, playerKey: 'player2' } });
+      }
+      await delay(400);
+    }
 
-export default GameContext
+    if (!cancelled) {
+      dispatch({ type: 'END_TURN' });
+      dispatch({ type: 'SET_AI_PROCESSING', payload: false });
+    }
+  };
+
+  runAI();
+
+  return () => { cancelled = true; };
+}, [state.turn, state.gamePhase]);
