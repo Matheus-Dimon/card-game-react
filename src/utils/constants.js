@@ -176,17 +176,17 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p1_fireblast",
       name: "Fireblast",
-      cost: 2,
+      cost: 1,
       requiresTarget: true,
       effect: "damage",
-      amount: 1,
+      amount: 2,
       icon: "🔥",
-      description: "Causa 1 de dano a um alvo"
+      description: "Causa 2 de dano a um alvo"
     },
     {
       id: "p1_heal",
       name: "Cura Divina",
-      cost: 2,
+      cost: 1,
       requiresTarget: false,
       effect: "heal",
       amount: 2,
@@ -206,7 +206,7 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p1_draw",
       name: "Concentração",
-      cost: 2,
+      cost: 1,
       requiresTarget: false,
       effect: "draw",
       amount: 1,
@@ -266,15 +266,15 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_hp_boost",
       name: "Vigor Inabalável",
       icon: "❤️",
-      description: "Suas unidades têm +1 de vida",
-      effect: { stat: 'defense', value: 1 }
+      description: "Suas unidades têm +2 de vida",
+      effect: { stat: 'defense', value: 2 }
     },
     {
       id: "passive_atk_boost",
       name: "Fúria de Batalha",
       icon: "⚔️",
-      description: "Suas unidades têm +1 de ataque",
-      effect: { stat: 'attack', value: 1 }
+      description: "Suas unidades têm +2 de ataque",
+      effect: { stat: 'attack', value: 2 }
     },
     {
       id: "passive_mana_regen",
@@ -287,22 +287,22 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_card_draw",
       name: "Sabedoria Antiga",
       icon: "📚",
-      description: "Compre 1 carta extra no início",
-      effect: { stat: 'startingHand', value: 1 }
+      description: "Compre 3 carta extra no início",
+      effect: { stat: 'startingHand', value: 3}
     },
     {
       id: "passive_armor_start",
       name: "Armadura Celestial",
       icon: "🛡️",
-      description: "Comece com 3 de armadura",
-      effect: { stat: 'startingArmor', value: 3 }
+      description: "Comece com 10 de armadura",
+      effect: { stat: 'startingArmor', value: 10 }
     },
     {
       id: "passive_hp_hero",
       name: "Vitalidade Suprema",
       icon: "💪",
-      description: "Comece com +5 de vida",
-      effect: { stat: 'startingHP', value: 5 }
+      description: "Comece com +10 de vida",
+      effect: { stat: 'startingHP', value: 10 }
     },
     {
       id: "passive_cheaper_minions",
@@ -322,8 +322,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_ranged_damage",
       name: "Precisão Letal",
       icon: "🎯",
-      description: "Suas unidades ranged têm +1 ataque",
-      effect: { stat: 'rangedAttack', value: 1 }
+      description: "Suas unidades ranged têm +3 ataque",
+      effect: { stat: 'rangedAttack', value: 3 }
     },
     {
       id: "passive_hero_power_cheap",
@@ -338,15 +338,15 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_hp_boost_p2",
       name: "Vigor das Trevas",
       icon: "💀",
-      description: "Suas unidades têm +1 de vida",
-      effect: { stat: 'defense', value: 1 }
+      description: "Suas unidades têm +2 de vida",
+      effect: { stat: 'defense', value: 2 }
     },
     {
       id: "passive_atk_boost_p2",
       name: "Fúria Sombria",
       icon: "⚔️",
-      description: "Suas unidades têm +1 de ataque",
-      effect: { stat: 'attack', value: 1 }
+      description: "Suas unidades têm +2 de ataque",
+      effect: { stat: 'attack', value: 2 }
     },
     {
       id: "passive_mana_regen_p2",
@@ -359,22 +359,22 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_card_draw_p2",
       name: "Conhecimento Profano",
       icon: "📖",
-      description: "Compre 1 carta extra no início",
-      effect: { stat: 'startingHand', value: 1 }
+      description: "Compre 3 carta extra no início",
+      effect: { stat: 'startingHand', value: 3 }
     },
     {
       id: "passive_armor_start_p2",
       name: "Escudo das Sombras",
       icon: "🛡️",
-      description: "Comece com 3 de armadura",
-      effect: { stat: 'startingArmor', value: 3 }
+      description: "Comece com 10 de armadura",
+      effect: { stat: 'startingArmor', value: 10 }
     },
     {
       id: "passive_hp_hero_p2",
       name: "Resistência Morta-Viva",
       icon: "💀",
-      description: "Comece com +5 de vida",
-      effect: { stat: 'startingHP', value: 5 }
+      description: "Comece com +10 de vida",
+      effect: { stat: 'startingHP', value: 10 }
     },
     {
       id: "passive_cheaper_minions_p2",
@@ -394,8 +394,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_ranged_damage_p2",
       name: "Maldição Letal",
       icon: "🎯",
-      description: "Suas unidades ranged têm +1 ataque",
-      effect: { stat: 'rangedAttack', value: 1 }
+      description: "Suas unidades ranged têm +3 ataque",
+      effect: { stat: 'rangedAttack', value: 3 }
     },
     {
       id: "passive_hero_power_cheap_p2",
