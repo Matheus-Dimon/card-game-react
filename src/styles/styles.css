@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
 :root{
   --bg:#0f1724; --card:#0b1220; --accent:#f5c06b; --muted:#94a3b8;
   --bg-medieval: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&h=1080&fit=crop&q=80');
@@ -9,7 +11,7 @@ body{
   background-size: cover;
   background-attachment: fixed;
   color:#e6eef8; 
-  font-family:Inter, system-ui, sans-serif; 
+  font-family: 'MedievalSharp', cursive;
   margin:0; 
   padding:0;
 }
@@ -1176,4 +1178,58 @@ body{
     width: 100%;
     max-height: 60px;
   }
+}
+
+.start-menu-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.start-menu {
+  text-align: center;
+}
+
+.start-menu-title {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.start-menu-button {
+  padding: 10px 20px;
+  font-size: 1.5em;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.card.playable {
+  border: 2px solid green;
+}
+
+.card.not-playable {
+  border: 2px solid red;
+}
+
+.card-tooltip {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 200px;
+  padding: 10px;
+  background-color: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 5px;
+  color: white;
+  z-index: 100;
+  display: none;
+}
+
+.card:hover .card-tooltip {
+  display: block;
 }

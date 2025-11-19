@@ -1,6 +1,8 @@
 import React from 'react'
+import CardTooltip from './CardTooltip'
 
-export default function Card({ card, isField = false, onClick, className = '', selected = false, isTargetable = false }) {
+export default function Card({ card, isField = false, onClick, className = '', selected = false, isTargetable = false, playable = false }) {
+  const [showTooltip, setShowTooltip] = React.useState(false)
   const attack = card.attack || card.currentAttack || 0
   const defense = card.defense || 0
   const heal = card.healValue || card.currentHeal || 0
@@ -32,11 +34,14 @@ export default function Card({ card, isField = false, onClick, className = '', s
     <div
       data-card-id={card.id}
       onClick={() => onClick && onClick(card)}
-      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${!card.canAttack && isField ? 'card-tired' : ''}`}
+      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${!card.canAttack && isField ? 'card-tired' : ''} ${playable ? 'playable' : 'not-playable'}`}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
     >
+      {showTooltip && <CardTooltip card={card} />}
       <div className="card-frame">
-        <img 
-          src={card.image} 
+        <img
+          src={card.image}
           alt={card.name} 
           onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=300&fit=crop&q=80')} 
         />

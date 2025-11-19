@@ -403,7 +403,7 @@ export default function Board() {
         </div>
       </div>
 
-      <Hand cards={player1.hand} onPlayCard={playCard} />
+      <Hand cards={player1.hand} onPlayCard={playCard} playerMana={player1.mana} />
       
       <div className="controls">
         <button className="btn" onClick={endTurn} disabled={turn !== 1}>

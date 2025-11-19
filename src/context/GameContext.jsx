@@ -32,7 +32,7 @@ const initialState = {
   },
   turn: 1,
   turnCount: 1,
-  gamePhase: 'PASSIVE_SKILLS',
+  gamePhase: 'START_MENU',
   gameOver: false,
   winner: null,
   selectedCardId: null,
@@ -215,6 +215,10 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
 /* ------------------- REDUCER ------------------- */
 function reducer(state=initialState, action){
   switch(action.type){
+
+    case 'GO_TO_PASSIVE_SKILLS': {
+      return { ...state, gamePhase: 'PASSIVE_SKILLS' };
+    }
 
     case 'SET_SELECTED_PASSIVE_SKILLS': {
       return {...state, selectedPassiveSkills: action.payload}

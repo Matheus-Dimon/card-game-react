@@ -113,20 +113,20 @@ export const CARD_EFFECTS = {
 export const CARD_OPTIONS = {
   P1: [
     // Básicas (custo 1-2)
-    { id: 'p1_001', name: 'Escudeiro', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 1, defense: 3, image: CARD_IMAGE_URLS.WARRIOR, effects: [] },
-    { id: 'p1_002', name: 'Arqueiro Novato', type: UNIT_TYPES.ARCHER, mana: 1, attack: 2, defense: 1, image: CARD_IMAGE_URLS.ARCHER, effects: [] },
-    { id: 'p1_003', name: 'Acólito', type: UNIT_TYPES.CLERIC, mana: 1, attack: 0, defense: 2, healValue: 2, image: CARD_IMAGE_URLS.CLERIC, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },
-    { id: 'p1_004', name: 'Lanceiro', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 3, defense: 2, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [] },
-    { id: 'p1_005', name: 'Besteiro', type: UNIT_TYPES.ARCHER, mana: 2, attack: 3, defense: 2, image: CARD_IMAGE_URLS.ARCHER_2, effects: [] },
+    { id: 'p1_001', name: 'Escudeiro', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 2, defense: 4, image: CARD_IMAGE_URLS.WARRIOR, effects: [] },
+    { id: 'p1_002', name: 'Arqueiro Novato', type: UNIT_TYPES.ARCHER, mana: 1, attack: 3, defense: 2, image: CARD_IMAGE_URLS.ARCHER, effects: [] },
+    { id: 'p1_003', name: 'Acólito', type: UNIT_TYPES.CLERIC, mana: 1, attack: 0, defense: 3, healValue: 3, image: CARD_IMAGE_URLS.CLERIC, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },
+    { id: 'p1_004', name: 'Lanceiro', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [] },
+    { id: 'p1_005', name: 'Besteiro', type: UNIT_TYPES.ARCHER, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.ARCHER_2, effects: [] },
     
     // Intermediárias (custo 3-4) com efeitos
-    { id: 'p1_006', name: 'Cavaleiro', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 3, defense: 4, image: CARD_IMAGE_URLS.WARRIOR_3, effects: [CARD_EFFECTS.CHARGE] },
-    { id: 'p1_007', name: 'Guardião', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 2, defense: 5, image: CARD_IMAGE_URLS.WARRIOR, effects: [CARD_EFFECTS.TAUNT] },
-    { id: 'p1_008', name: 'Atirador Elite', type: UNIT_TYPES.ARCHER, mana: 3, attack: 4, defense: 2, image: CARD_IMAGE_URLS.ARCHER_3, effects: [CARD_EFFECTS.BATTLECRY_DAMAGE_ALL] },
-    { id: 'p1_009', name: 'Curandeiro', type: UNIT_TYPES.CLERIC, mana: 3, attack: 0, defense: 4, healValue: 3, image: CARD_IMAGE_URLS.CLERIC_2, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },
-    { id: 'p1_010', name: 'Paladino', type: UNIT_TYPES.WARRIOR, mana: 4, attack: 4, defense: 5, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [CARD_EFFECTS.SHIELD_FIRST_TURN] },
-    { id: 'p1_011', name: 'Caçador', type: UNIT_TYPES.ARCHER, mana: 4, attack: 5, defense: 3, image: CARD_IMAGE_URLS.ARCHER, effects: [CARD_EFFECTS.LIFESTEAL] },
-    { id: 'p1_012', name: 'Sacerdote', type: UNIT_TYPES.CLERIC, mana: 4, attack: 0, defense: 5, healValue: 4, image: CARD_IMAGE_URLS.CLERIC_3, effects: [CARD_EFFECTS.BATTLECRY_DRAW] },
+    { id: 'p1_006', name: 'Cavaleiro', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 4, defense: 5, image: CARD_IMAGE_URLS.WARRIOR_3, effects: [CARD_EFFECTS.CHARGE] },
+    { id: 'p1_007', name: 'Guardião', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 3, defense: 6, image: CARD_IMAGE_URLS.WARRIOR, effects: [CARD_EFFECTS.TAUNT] },
+    { id: 'p1_008', name: 'Atirador Elite', type: UNIT_TYPES.ARCHER, mana: 3, attack: 5, defense: 3, image: CARD_IMAGE_URLS.ARCHER_3, effects: [CARD_EFFECTS.BATTLECRY_DAMAGE_ALL] },
+    { id: 'p1_009', name: 'Curandeiro', type: UNIT_TYPES.CLERIC, mana: 3, attack: 0, defense: 5, healValue: 4, image: CARD_IMAGE_URLS.CLERIC_2, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },
+    { id: 'p1_010', name: 'Paladino', type: UNIT_TYPES.WARRIOR, mana: 4, attack: 5, defense: 6, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [CARD_EFFECTS.SHIELD_FIRST_TURN] },
+    { id: 'p1_011', name: 'Caçador', type: UNIT_TYPES.ARCHER, mana: 4, attack: 6, defense: 4, image: CARD_IMAGE_URLS.ARCHER, effects: [CARD_EFFECTS.LIFESTEAL] },
+    { id: 'p1_012', name: 'Sacerdote', type: UNIT_TYPES.CLERIC, mana: 4, attack: 0, defense: 6, healValue: 5, image: CARD_IMAGE_URLS.CLERIC_3, effects: [CARD_EFFECTS.BATTLECRY_DRAW] },
     
     // Avançadas (custo 5-6)
     { id: 'p1_013', name: 'Capitão', type: UNIT_TYPES.WARRIOR, mana: 5, attack: 4, defense: 6, image: CARD_IMAGE_URLS.WARRIOR_3, effects: [CARD_EFFECTS.BATTLECRY_BUFF_ALLIES] },

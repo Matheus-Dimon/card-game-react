@@ -8,9 +8,19 @@ import GameContext from '../context/GameContext'
 import ErrorBoundary from '../components/ErrorBoundary'
 import GlobalErrorCatcher from '../components/GlobalErrorCatcher'
 import BackgroundMusic from '../components/BackgroundMusic'
+import StartMenu from './StartMenu'
 
 function InnerApp() {
   const { state, dispatch } = useContext(GameContext)
+
+  if (state.gamePhase === 'START_MENU') {
+    return (
+      <>
+        <StartMenu />
+        <BackgroundMusic />
+      </>
+    )
+  }
 
   if (state.gamePhase === 'PASSIVE_SKILLS') {
     return (
