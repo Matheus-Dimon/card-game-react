@@ -134,7 +134,25 @@ export default function Board() {
 
   const onPlayerFieldCardClick = (card) => {
     if (turn !== 1) return
+
+    // If currently targeting for hero power, do nothing
     if (targeting.active) return
+
+    // If currently targeting for healing, select target to heal
+    if (state.targeting.healingActive) {
+      // Only allow healing own cards or deselect if clicked same
+      if (isCardOwner(card.id, 'player1')) {
+        dispatch({
+          type: 'APPLY_HEAL_WITH_TARGET',
+          payload: {
+            targetCardId: card.id,
+            targetIsHero: false
+          }
+        })
+      }
+      return
+    }
+
     if (!card.canAttack) return
 
     // Check if this is a cleric unit (has healValue)
@@ -164,12 +182,7 @@ export default function Board() {
   }
 
   const onTargetClick = (target, isHero = false, targetHeroKey = null) => {
-    if (targeting.active && targeting.playerUsing === 'player1') {
-      handleHeroPowerTarget(target, isHero, targetHeroKey)
-      return
-    }
-
-    // Handle cleric healing targeting
+    // Handle cleric healing targeting first
     if (state.targeting.healingActive && state.targeting.playerUsing === 'player1') {
       if (!target && !isHero) return
 
@@ -184,6 +197,11 @@ export default function Board() {
           targetIsHero: isHero
         }
       })
+      return
+    }
+
+    if (targeting.active && targeting.playerUsing === 'player1') {
+      handleHeroPowerTarget(target, isHero, targetHeroKey)
       return
     }
 
@@ -365,9 +383,10 @@ export default function Board() {
             onClick={() => onTargetClick(null, true, 'player2')} 
             isTargetable={isPlayer2HeroTargetable()}
           />
-          <HeroPowerBadge 
+          <HeroPowerBadge
             powers={player2.heroPowers}
-            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})} 
+            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})}
+            disabledProps={{ disabled: false, mana: 0 }}
           />
         </div>
         
@@ -446,6 +465,17 @@ export default function Board() {
         <div className="targeting-overlay">
           <div className="targeting-message">
             Selecione um alvo para {targeting.power?.name}
+            <button className="btn-cancel" onClick={() => dispatch({type: 'CANCEL_TARGETING'})}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {targeting.healingActive && targeting.playerUsing === 'player1' && (
+        <div className="targeting-overlay">
+          <div className="targeting-message">
+            Selecione um alvo para curar
             <button className="btn-cancel" onClick={() => dispatch({type: 'CANCEL_TARGETING'})}>
               Cancelar
             </button>

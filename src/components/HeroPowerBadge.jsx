@@ -1,23 +1,27 @@
 import React from 'react'
 import HeroPowerTooltip from './HeroPowerTooltip'
 
-export default function HeroPowerBadge({ powers = [], onClick }) {
+export default function HeroPowerBadge({ powers = [], onClick, disabledProps = {} }) {
   const [showTooltip, setShowTooltip] = React.useState(null)
 
   if (!powers || powers.length === 0) return null
 
+  const { disabled = false, mana = 0 } = disabledProps
+
   return (
     <div className="hero-powers-container">
-      {powers.map((power, idx) => (
-        <div
-          key={power.id || idx}
-          className="hero-power"
-          onClick={() => onClick && onClick(power.id)}
-          style={{ cursor: "pointer" }}
-          onMouseEnter={() => setShowTooltip(power.id)}
-          onMouseLeave={() => setShowTooltip(null)}
-          title={`${power.name} - ${power.cost} mana`}
-        >
+      {powers.map((power, idx) => {
+        const isDisabled = disabled || power.cost > mana
+        return (
+          <div
+            key={power.id || idx}
+            className={`hero-power ${isDisabled ? 'disabled' : ''}`}
+            onClick={() => (!isDisabled && onClick) ? onClick(power.id) : undefined}
+            style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+            onMouseEnter={() => setShowTooltip(power.id)}
+            onMouseLeave={() => setShowTooltip(null)}
+            title={`${power.name} - ${power.cost} mana ${isDisabled ? '(Unavailable)' : ''}`}
+          >
           {showTooltip === power.id && <HeroPowerTooltip power={power} />}
           <div className="hero-power-icon">
             {power.icon ? (
@@ -39,7 +43,8 @@ export default function HeroPowerBadge({ powers = [], onClick }) {
             <div className="hero-power-cost">{power.cost} 💎</div>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

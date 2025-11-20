@@ -477,45 +477,7 @@ function reducer(state=initialState, action){
     case 'APPLY_HERO_POWER_WITH_TARGET': {
       const {playerKey, power, targetCardId, targetIsHero} = action.payload
       const newState = applyHeroPowerEffect(state, playerKey, power, targetCardId, targetIsHero)
-      return {...newState, targeting: {active: false, playerUsing: null, power: null}}
-    }
-
-    case 'INITIATE_HEAL_TARGETING': {
-      const { healerId, healAmount } = action.payload
-      return {
-        ...state,
-        healingTarget: { active: true, healerId, healAmount }
-      }
-    }
-
-    case 'APPLY_HEAL': {
-      const { healerId, targetId, targetIsHero, healAmount } = action.payload
-      const player = { ...state.player1 }
-      let newState = { ...state }
-
-      // Mark healer as used
-      player.field = markAttackerAsUsed(player.field, healerId)
-
-      if (targetIsHero) {
-        player.hp = player.hp + healAmount // Allow overheal
-      } else if (targetId) {
-        player.field = safeLaneCopy(player.field)
-        ;['melee', 'ranged'].forEach(lane => {
-          player.field[lane] = player.field[lane].map(c => {
-            if (c.id === targetId) {
-              return { ...c, defense: c.defense + healAmount } // Heal as debug, meaning unlimited
-            }
-            return c
-          })
-        })
-      }
-
-      newState.player1 = player
-      return { ...newState, healingTarget: { active: false, healerId: null, healAmount: 0 } }
-    }
-
-    case 'CANCEL_TARGETING': {
-      return {...state, targeting: {active: false, playerUsing: null, power: null}, healingTarget: {active: false, healerId: null, healAmount: 0}}
+      return {...newState, targeting: {active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0}}
     }
 
     case 'INITIATE_HEAL_TARGETING': {
@@ -529,59 +491,14 @@ function reducer(state=initialState, action){
           healingActive: true,
           healerId,
           healAmount
-        }
-      }
-    }
-
-    case 'APPLY_HEALING': {
-      const { healerId, targetId, targetIsHero, healAmount } = action.payload
-
-      let player = {...state.player1}
-      player.field = markAttackerAsUsed(player.field, healerId) // Mark cleric as used
-
-      if (targetIsHero) {
-        player.hp = player.hp + healAmount // Allow overheal
-        return {
-          ...state,
-          player1: {...player, field: safeLaneCopy(player.field)}
-        }
-      } else if (targetId) {
-        player.field = safeLaneCopy(player.field)
-        ;['melee', 'ranged'].forEach(lane => {
-          player.field[lane] = player.field[lane].map(c => {
-            if (c.id === targetId) {
-              return {...c, defense: c.defense + healAmount} // Allow overheal for units too
-            }
-            return c
-          })
-        })
-        return {
-          ...state,
-          player1: {...player}
-        }
-      }
-      return state
-    }
-
-    case 'CANCEL_HEAL_TARGETING': {
-      return {
-        ...state,
-        targeting: {active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0}
-      }
-    }
-
-    case 'INITIATE_HEAL_TARGETING': {
-      const { healerId, healAmount } = action.payload
-      return {
-        ...state,
-        healingTarget: { active: true, healerId, healAmount },
+        },
         selectedCardId: null // Deselect any attacker
       }
     }
 
     case 'APPLY_HEAL_WITH_TARGET': {
       const { targetCardId, targetIsHero } = action.payload
-      const { healerId, healAmount } = state.healingTarget
+      const { healerId, healAmount } = state.targeting
       const player = { ...state.player1 }
 
       // Mark healer as used
@@ -606,16 +523,12 @@ function reducer(state=initialState, action){
       return {
         ...state,
         player1: updatedPlayer,
-        healingTarget: { active: false, healerId: null, healAmount: 0 }
+        targeting: {active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0}
       }
     }
 
-    case 'CANCEL_HEALING': {
-      return {
-        ...state,
-        healingTarget: { active: false, healerId: null, healAmount: 0 },
-        selectedCardId: null
-      }
+    case 'CANCEL_TARGETING': {
+      return {...state, targeting: {active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0}}
     }
 
     case 'DRAW_CARD': {
