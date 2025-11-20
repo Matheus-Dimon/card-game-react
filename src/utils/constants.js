@@ -302,7 +302,76 @@ export const HERO_POWER_OPTIONS = {
       icon: "✨",
       description: "Cura 4 de vida a qualquer alvo (herói ou unidade)"
     },
-    
+    {
+      id: "p2_armor",
+      name: "Fortificar",
+      cost: 1,
+      requiresTarget: false,
+      effect: "armor",
+      amount: 3,
+      icon: "🛡️",
+      description: "Ganha 3 de armadura"
+    },
+    {
+      id: "p2_draw",
+      name: "Concentração",
+      cost: 2,
+      requiresTarget: false,
+      effect: "draw",
+      amount: 2,
+      icon: "📖",
+      description: "Compra 2 cartas"
+    },
+    {
+      id: "p2_charge",
+      name: "Ímpeto",
+      cost: 2,
+      requiresTarget: false,
+      effect: "charge_melee",
+      amount: 1,
+      icon: "⚡",
+      description: "Suas unidades corpo a corpo ganham Charge neste turno"
+    },
+    {
+      id: "p2_buff_all",
+      name: "Bênção",
+      cost: 3,
+      requiresTarget: false,
+      effect: "buff_all",
+      amount: 2,
+      icon: "💪",
+      description: "+2/+2 a todas suas unidades"
+    },
+    {
+      id: "p2_damage_all",
+      name: "Tempestade",
+      cost: 3,
+      requiresTarget: false,
+      effect: "damage_all_enemies",
+      amount: 2,
+      icon: "⚡",
+      description: "Causa 2 de dano a todas unidades inimigas"
+    },
+    {
+      id: "p2_mana_boost",
+      name: "Cristal Arcano",
+      cost: 0,
+      requiresTarget: false,
+      effect: "mana_boost",
+      amount: 2,
+      icon: "💎",
+      description: "Ganha 2 de mana temporária neste turno"
+    },
+    {
+      id: "p2_resurrect",
+      name: "Ressurreição",
+      cost: 4,
+      requiresTarget: false,
+      effect: "draw_from_graveyard",
+      amount: 1,
+      icon: "🔄",
+      description: "Retorna uma unidade aleatória morta para sua mão"
+    },
   ]
 }
 

@@ -258,20 +258,20 @@ export default function Board() {
   const processAttack = (attacker, target, isHero, targetHeroKey) => {
     const attackerEl = document.querySelector(`[data-card-id="${attacker.id}"]`)
     const damageVal = attacker.attack || 1
-    const targetEl = isHero 
-      ? document.querySelector(`[data-hero="${targetHeroKey}"]`) 
+    const targetEl = isHero
+      ? document.querySelector(`[data-hero="${targetHeroKey}"]`)
       : (target ? document.querySelector(`[data-card-id="${target.id}"]`) : null)
 
     if (!attackerEl || !targetEl) {
-      dispatch({ 
-        type: 'APPLY_ATTACK_DAMAGE', 
-        payload: { 
-          attackerId: attacker.id, 
-          targetId: isHero ? null : (target ? target.id : null), 
-          targetIsHero: isHero, 
-          damage: damageVal, 
-          playerKey: 'player1' 
-        } 
+      dispatch({
+        type: 'APPLY_ATTACK_DAMAGE',
+        payload: {
+          attackerId: attacker.id,
+          targetId: isHero ? null : (target ? target.id : null),
+          targetIsHero: isHero,
+          damage: damageVal,
+          playerKey: 'player1'
+        }
       })
       dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
       return
@@ -280,34 +280,51 @@ export default function Board() {
     const startRect = attackerEl.getBoundingClientRect()
     const endRect = targetEl.getBoundingClientRect()
 
-    let projectile = 'stone'
-    if (attacker.type?.name?.toLowerCase().includes('arqueiro')) projectile = 'arrow'
-    if (attacker.type?.name?.toLowerCase().includes('cler')) projectile = 'spark'
-
-    const cbAction = { 
-      type: 'APPLY_ATTACK_DAMAGE', 
-      payload: { 
-        attackerId: attacker.id, 
-        targetId: isHero ? null : (target ? target.id : null), 
-        targetIsHero: isHero, 
-        damage: damageVal, 
-        playerKey: 'player1' 
-      } 
+    const isMelee = attacker.type.lane === 'melee'
+    let animationPayload = {
+      startRect,
+      endRect,
+      duration: isMelee ? 800 : 700,
+      damage: damageVal,
+      callbackAction: {
+        type: 'APPLY_ATTACK_DAMAGE',
+        payload: {
+          attackerId: attacker.id,
+          targetId: isHero ? null : (target ? target.id : null),
+          targetIsHero: isHero,
+          damage: damageVal,
+          playerKey: 'player1'
+        }
+      }
     }
 
-    dispatch({ 
-      type: 'INITIATE_ANIMATION', 
-      payload: { 
-        startRect, 
-        endRect, 
-        duration: 700, 
-        projectile, 
-        damage: damageVal, 
-        callbackAction: cbAction 
-      } 
-    })
-    
-    dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
+    if (isMelee) {
+      // For melee, lift the card first, then animate movement
+      const originalTransform = attackerEl.style.transform
+      attackerEl.style.transform = originalTransform + ' translateY(-20px)'
+      animationPayload.isMelee = true
+      animationPayload.cardImage = attacker.type.image
+      animationPayload.targetEl = targetEl
+      setTimeout(() => {
+        attackerEl.style.transform = originalTransform
+        dispatch({
+          type: 'INITIATE_ANIMATION',
+          payload: animationPayload
+        })
+        dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
+      }, 300)
+    } else {
+      // For ranged, use projectile
+      let projectile = 'stone'
+      if (attacker.type?.name?.toLowerCase().includes('arqueiro')) projectile = 'arrow'
+      if (attacker.type?.name?.toLowerCase().includes('cler')) projectile = 'spark'
+      animationPayload.projectile = projectile
+      dispatch({
+        type: 'INITIATE_ANIMATION',
+        payload: animationPayload
+      })
+      dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
+    }
   }
 
   const handleHeroPowerTarget = (target, isHero, targetHeroKey) => {
@@ -446,9 +463,10 @@ export default function Board() {
             image="https://images.unsplash.com/photo-1605792657660-596af9009e82?w=200&h=200&fit=crop"
             onClick={() => onTargetClick(null, true, 'player1')} 
           />
-          <HeroPowerBadge 
-            powers={player1.heroPowers} 
-            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})} 
+          <HeroPowerBadge
+            powers={player1.heroPowers}
+            onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})}
+            disabledProps={{ mana: player1.mana }}
           />
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, useEffect, useRef } from 'react'
 import { makeStartingDeck, makeStartingHeropower, shuffle, applyPassiveEffects, makeOrderedDeck } from '../utils/helpers.js'
-import { CARD_OPTIONS, HERO_POWER_OPTIONS, STARTING_HP, STARTING_MANA, CARD_EFFECTS } from '../utils/constants.js'
+import { CARD_OPTIONS, HERO_POWER_OPTIONS, HERO_PASSIVE_OPTIONS, STARTING_HP, STARTING_MANA, CARD_EFFECTS } from '../utils/constants.js'
 
 export const GameContext = createContext(null)
 const STARTING_DECK_SIZE = 15
@@ -39,10 +39,78 @@ const initialState = {
   selectedPassiveSkills: [],
   selectedDeckCards: [],
   selectedHeroPowers: [],
+  selectedPassiveSkillsP2: [],
+  selectedDeckCardsP2: [],
+  selectedHeroPowersP2: [],
   targeting: { active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0 },
   healingTarget: { active: false, healerId: null, healAmount: 0 },
   animation: { active: false, element: null, startRect: null, endRect: null, callbackAction: null },
   isAITurnProcessing: false,
+}
+
+/* ------------------- AI Selections ------------------- */
+function selectAIPassives() {
+  const pool = HERO_PASSIVE_OPTIONS.P2
+  // Choose best combination: atk_boost, hp_boost, cheaper_minions or card_draw
+  const preferred = ['passive_atk_boost_p2', 'passive_hp_boost_p2', 'passive_cheaper_minions_p2', 'passive_card_draw_p2']
+  const selected = []
+  preferred.forEach(id => {
+    const skill = pool.find(s => s.id === id)
+    if (skill) selected.push(id)
+  })
+  while (selected.length < 3 && selected.length < pool.length) {
+    const random = pool[Math.floor(Math.random() * pool.length)]
+    if (!selected.includes(random.id)) selected.push(random.id)
+  }
+  return selected.slice(0, 3)
+}
+
+function selectAIDeck() {
+  const pool = CARD_OPTIONS.P2
+  const selected = {}
+  // Prioritize cards with effects, high stats, low cost
+  const scored = pool.map(card => ({
+    ...card,
+    score: (card.attack || 0) + (card.defense || 0) + ((card.effects?.length || 0) * 5) - (card.mana * 2) + Math.random() * 3
+  })).sort((a,b) => b.score - a.score)
+
+  scored.forEach(card => {
+    const count = selected[card.id] || 0
+    if (count < 3) {
+      selected[card.id] = count + 1
+    }
+  })
+
+  let cards = []
+  Object.entries(selected).forEach(([id, count]) => {
+    for (let i = 0; i < count; i++) {
+      cards.push(id)
+    }
+  })
+
+  while (cards.length < 15) {
+    const randomCard = pool[Math.floor(Math.random() * pool.length)]
+    cards.push(randomCard.id)
+  }
+
+  return cards.slice(0, 15)
+}
+
+function selectAIPowers() {
+  const pool = HERO_POWER_OPTIONS.P2
+  // Prefer: damage to hero targeting, armor, draw
+  const preferredOrder = ['p2_fireblast', 'p2_armor', 'p2_draw', 'p2_heal_target']
+  const selected = []
+  preferredOrder.forEach(id => {
+    const power = pool.find(p => p.id === id)
+    if (power && selected.length < 2) selected.push(id)
+  })
+
+  while (selected.length < 2 && selected.length < pool.length) {
+    const random = pool[Math.floor(Math.random() * pool.length)]
+    if (!selected.includes(random.id)) selected.push(random.id)
+  }
+  return selected.slice(0, 2)
 }
 
 /* ------------------- AUXILIARES ------------------- */
@@ -275,9 +343,7 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
 
     case 'mana_boost': {
       const amount = power.amount || 2
-      const newMaxMana = Math.min((player.maxMana || 0) + amount, 10)
-      player.mana = player.mana + amount
-      player.maxMana = newMaxMana
+      player.mana += amount
       return {...state, [playerKey]: player}
     }
 
@@ -343,39 +409,65 @@ function reducer(state=initialState, action){
     case 'START_GAME': {
       if (state.selectedHeroPowers.length < 2) return state
 
+      // AI selections
+      const aiPassives = selectAIPassives()
+      const aiDeckCards = selectAIDeck()
+      const aiPowers = selectAIPowers()
+
       const p1Powers = state.selectedHeroPowers.map(powerId => {
         const power = HERO_POWER_OPTIONS.P1.find(p => p.id === powerId)
         return {...power}
       })
 
+      const p2Powers = aiPowers.map(powerId => {
+        const power = HERO_POWER_OPTIONS.P2.find(p => p.id === powerId)
+        return {...power}
+      })
+
+      // Ordered decks
+      const p1Deck = makeOrderedDeck(CARD_OPTIONS.P1, state.selectedDeckCards)
+      const p2Deck = makeOrderedDeck(CARD_OPTIONS.P2, aiDeckCards)
+
       let p1 = {
-        ...state.player1, 
-        heroPowers: p1Powers, 
-        hand: [], 
-        deck: [...state.player1.deck],
-        passiveSkills: state.selectedPassiveSkills
+        ...state.player1,
+        heroPowers: p1Powers,
+        deck: p1Deck,
+        passiveSkills: state.selectedPassiveSkills,
+        hand: [],
       }
-      
-      let p2 = {...state.player2, hand: [], deck: [...state.player2.deck]}
-      
-      // Aplica passivas iniciais
+
+      let p2 = {
+        ...state.player2,
+        heroPowers: p2Powers,
+        deck: p2Deck,
+        passiveSkills: aiPassives,
+        hand: [],
+      }
+
+      // Apply passive effects
       p1 = applyPassiveEffects(p1, state.selectedPassiveSkills)
-      
+      p2 = applyPassiveEffects(p2, aiPassives)
+
       const draw = (p, n) => {
         const drawn = p.deck.slice(0, n).map(c => ({...c, id: `${c.id}_${Date.now()}_${Math.random()}`}))
         p.hand = [...p.hand, ...drawn]
         p.deck = p.deck.slice(n)
       }
-      
-      let startHand = 3
+
+      let startHandP1 = 3
       if (state.selectedPassiveSkills.some(id => id.includes('card_draw'))) {
-        startHand = 4
+        startHandP1 = 4
       }
-      
-      draw(p1, startHand)
-      draw(p2, 3)
-      
-      return {...state, player1: p1, player2: p2, gamePhase: 'PLAYING', turnCount: 1}
+
+      let startHandP2 = 3
+      if (aiPassives.some(id => id.includes('card_draw'))) {
+        startHandP2 = 4
+      }
+
+      draw(p1, startHandP1)
+      draw(p2, startHandP2)
+
+      return {...state, player1: p1, player2: p2, gamePhase: 'PLAYING', turnCount: 1, selectedPassiveSkillsP2: aiPassives, selectedDeckCardsP2: aiDeckCards, selectedHeroPowersP2: aiPowers}
     }
 
     case 'PLAY_CARD': {
@@ -709,16 +801,115 @@ export function GameProvider({children}){
       if (cancelled) return
 
       let mana = stateRef.current.player2.mana
-      const playable = stateRef.current.player2.hand.filter(c => c.mana <= mana).sort((a,b) => b.mana - a.mana)
+      const aiPlayer = state.player2
+
+      // Smart card priority: high score first
+      const playable = state.player2.hand.filter(c => {
+        let cost = c.mana
+        if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+        cost = Math.max(1, cost)
+        return cost <= mana
+      }).map(card => {
+        let attack = card.attack || 0
+        let defense = card.defense || 0
+        if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) defense += 1
+        if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) attack += 1
+        if (card.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) attack += 1
+
+        let cost = card.mana
+        if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+        cost = Math.max(1, cost)
+
+        // Score: efficiency + effects
+        const score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
+        return {...card, aiScore: score, effectiveCost: cost}
+      }).sort((a,b) => b.aiScore - a.aiScore)
 
       if (playable.length > 0) {
         const card = playable[0]
         dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
+        mana -= card.effectiveCost
         await delay(800)
         if (cancelled) return
       }
 
-      // AI Combat Phase
+      // Use hero power if beneficial
+      const currentState = stateRef.current
+      const heroPowers = currentState.player2.heroPowers || []
+      let bestPower = null
+      let bestPowerScore = -1
+      heroPowers.forEach(power => {
+        if (currentState.player2.mana >= power.cost && !currentState.player2.hasUsedHeroPower) {
+          let score = 0
+          const opponent = currentState.player1
+          const hasMinions = [...opponent.field.melee, ...opponent.field.ranged].length > 0
+          const oppHp = opponent.hp
+
+          switch (power.effect) {
+            case 'damage':
+              if (oppHp < 10) score = 10 - oppHp // Prioritize finishing hero
+              else score = oppHp > 20 ? 0 : 5 // Low priority
+              break
+            case 'heal_target':
+              if (currentState.player2.hp < 20) score = 8
+              else score = 4
+              break
+            case 'armor':
+              if (currentState.player2.hp < 15) score = 7
+              break
+            case 'draw':
+              if (currentState.player2.deck.length > 5) score = 6
+              break
+            case 'charge_melee':
+              if (hasMinions) score = 3
+              break
+            case 'buff_all':
+              if (hasMinions) score = 2
+              break
+            case 'damage_all_enemies':
+              if (hasMinions) score = 4
+              break
+            default:
+              score = 1
+          }
+
+          if (score > bestPowerScore) {
+            bestPowerScore = score
+            bestPower = power
+          }
+        }
+      })
+
+      if (bestPower && bestPowerScore > 0) {
+        dispatch({type: 'HERO_POWER_CLICK', payload: {player: 'player2', powerId: bestPower.id}})
+        // For targeting powers, pick best target
+        if (bestPower.requiresTarget) {
+          await delay(200)
+          const postPowerState = stateRef.current
+          let targetId = null
+          let targetIsHero = false
+
+          if (bestPower.effect === 'damage') {
+            // Target weakest minion or hero if low HP
+            const minions = [...postPowerState.player1.field.melee, ...postPowerState.player1.field.ranged].sort((a,b) => a.defense - b.defense)
+            if (minions.length > 0) targetId = minions[0].id
+            else targetIsHero = true
+          } else if (bestPower.effect === 'heal_target') {
+            // Heal most damaged unit or hero
+            const units = [...postPowerState.player2.field.melee, ...postPowerState.player2.field.ranged].sort((a,b) => a.defense - b.defense)
+            if (units.length > 0) targetId = units[0].id
+            else targetIsHero = true
+          }
+
+          if (targetId || targetIsHero) {
+            dispatch({type: 'APPLY_HERO_POWER_WITH_TARGET', payload: {playerKey: 'player2', power: bestPower, targetCardId: targetId, targetIsHero}})
+          }
+        }
+        await delay(800)
+        if (cancelled) return
+      }
+
+      // AI Combat Phase - Smart targeting
       const attackerUnits = [...stateRef.current.player2.field.melee, ...stateRef.current.player2.field.ranged].filter(c => c.canAttack)
       const opponent = stateRef.current.player1
 
@@ -726,23 +917,31 @@ export function GameProvider({children}){
         if (cancelled) return
 
         let possibleTargets = []
-        const enemyMelee = opponent.field.melee.length
         const allEnemyMinions = [...opponent.field.melee, ...opponent.field.ranged]
 
-        if (attacker.type.lane === 'ranged') {
-          // Ranged can attack any minion or hero
-          possibleTargets = [...allEnemyMinions]
-        } else if (attacker.type.lane === 'melee') {
-          // Melee can attack enemy melee, or if none, ranged and hero
-          if (enemyMelee > 0) {
-            possibleTargets = opponent.field.melee
-          } else {
-            possibleTargets = [...allEnemyMinions]
+        // Check for taunts first
+        const taunts = allEnemyMinions.filter(m => m.effects?.some(e => e.effect === 'TAUNT'))
+        if (taunts.length > 0) {
+          possibleTargets = taunts
+        } else {
+          if (attacker.type.lane === 'ranged') {
+            possibleTargets = allEnemyMinions
+          } else if (attacker.type.lane === 'melee') {
+            if (opponent.field.melee.length > 0) {
+              possibleTargets = opponent.field.melee
+            } else {
+              possibleTargets = allEnemyMinions
+            }
           }
         }
 
-        // Sort by defense (attack weakest first)
-        possibleTargets.sort((a, b) => a.defense - b.defense)
+        // Sort by priority: lethal, low defense
+        possibleTargets.sort((a, b) => {
+          const lethalA = attacker.attack >= a.defense ? 1 : 0
+          const lethalB = attacker.attack >= b.defense ? 1 : 0
+          if (lethalA !== lethalB) return lethalB - lethalA
+          return a.defense - b.defense
+        })
 
         let targetId = null
         let targetIsHero = false
@@ -751,7 +950,9 @@ export function GameProvider({children}){
         if (possibleTargets.length > 0) {
           targetId = possibleTargets[0].id
         } else {
-          // No minions, attack hero
+          // No minions, attack hero (unless allied cleric healing)
+          const isAllyCleric = attacker.type.name === 'Clérigo'
+          if (isAllyCleric && opponent.hp >= 30) return // Don't waste heal on max HP
           targetIsHero = true
         }
 

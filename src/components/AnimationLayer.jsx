@@ -11,6 +11,7 @@ export default function AnimationLayer({ animation, onComplete }) {
     let cleanupTimeout = null
     if (!animation || !animation.active) return
     const duration = animation.duration || 500
+    const isMelee = animation.isMelee
 
     if (animation.startRect && animation.endRect) {
       setRunning(true)
@@ -25,7 +26,7 @@ export default function AnimationLayer({ animation, onComplete }) {
       const endY = e.top + e.height / 2 + (window.scrollY || 0)
 
       const midX = (startX + endX) / 2
-      const midY = (startY + endY) / 2 - Math.max(80, Math.abs(endX - startX) * 0.25)
+      const midY = (startY + endY) / 2
 
       const startTime = performance.now()
 
@@ -36,13 +37,31 @@ export default function AnimationLayer({ animation, onComplete }) {
         const y = inv * inv * startY + 2 * inv * t * midY + t * t * endY
 
         if (elRef.current) {
-          elRef.current.style.transform = `translate3d(${x - 12}px, ${y - 12}px, 0) scale(${1 - 0.15 * t})`
-          elRef.current.style.opacity = `${1 - t}`
+          const scale = isMelee ? 1 : (1 - 0.15 * t)
+          const opacity = isMelee ? 1 : (1 - t)
+          elRef.current.style.transform = `translate3d(${x - 12}px, ${y - 12}px, 0) scale(${scale})`
+          elRef.current.style.opacity = `${opacity}`
         }
 
         if (t < 1) {
           rafId = requestAnimationFrame(draw)
         } else {
+          // For melee, add hit effect to target
+          if (isMelee && animation.targetEl) {
+            const originalTransform = animation.targetEl.style.transform
+            let shakeCount = 0
+            const shake = () => {
+              animation.targetEl.style.transform = `${originalTransform} translateX(${shakeCount % 2 === 0 ? -5 : 5}px)`
+              shakeCount++
+              if (shakeCount < 5) {
+                setTimeout(shake, 50)
+              } else {
+                animation.targetEl.style.transform = originalTransform
+              }
+            }
+            shake()
+          }
+
           // spawn particles and damage pop (React-managed)
           const newParticles = Array.from({ length: 6 }).map(() => ({
             id: Math.random().toString(36).slice(2),
@@ -83,8 +102,9 @@ export default function AnimationLayer({ animation, onComplete }) {
 
   // projectile element selection based on animation.projectile
   const projectileEl = (() => {
-    const type = animation.projectile || 'stone'
+    if (animation.cardImage) return <img src={animation.cardImage} style={{width: 100, height: 145, objectFit: 'cover'}} alt="" />
     if (animation.element) return animation.element
+    const type = animation.projectile || 'stone'
     if (type === 'arrow') return <div className="projectile arrow" />
     if (type === 'spark') return <div className="projectile spark-proj" />
     return <div className="projectile stone-proj" />
