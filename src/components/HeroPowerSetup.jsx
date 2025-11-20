@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { HERO_POWER_OPTIONS } from '../utils/constants.js'
-import GameContext from '../context/GameContext'
+import { GameContext } from '../context/GameContext'
 
 export default function HeroPowerSetup() {
   const { state, dispatch } = useContext(GameContext)

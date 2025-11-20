@@ -1,18 +1,24 @@
 import React from 'react'
+import HeroPowerTooltip from './HeroPowerTooltip'
 
 export default function HeroPowerBadge({ powers = [], onClick }) {
+  const [showTooltip, setShowTooltip] = React.useState(null)
+
   if (!powers || powers.length === 0) return null
 
   return (
     <div className="hero-powers-container">
       {powers.map((power, idx) => (
-        <div 
-          key={power.id || idx} 
-          className="hero-power" 
+        <div
+          key={power.id || idx}
+          className="hero-power"
           onClick={() => onClick && onClick(power.id)}
           style={{ cursor: "pointer" }}
+          onMouseEnter={() => setShowTooltip(power.id)}
+          onMouseLeave={() => setShowTooltip(null)}
           title={`${power.name} - ${power.cost} mana`}
         >
+          {showTooltip === power.id && <HeroPowerTooltip power={power} />}
           <div className="hero-power-icon">
             {power.icon ? (
               <span className="power-emoji">{power.icon}</span>

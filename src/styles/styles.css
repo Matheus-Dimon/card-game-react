@@ -1233,3 +1233,41 @@ body{
 .card:hover .card-tooltip {
   display: block;
 }
+
+.hero-power-tooltip {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 10px);
+  width: 250px;
+  padding: 12px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 2px solid rgba(245,192,107,0.6);
+  border-radius: 10px;
+  color: white;
+  z-index: 1000;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+  display: none;
+}
+
+.hero-power:hover .hero-power-tooltip {
+  display: block;
+}
+
+.hero-power-tooltip-content h3 {
+  margin: 0 0 8px 0;
+  color: #fbbf24;
+  font-size: 16px;
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+}
+
+.hero-power-tooltip-content p {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+
+.hero-power-tooltip-content p strong {
+  color: #60a5fa;
+}

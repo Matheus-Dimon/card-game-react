@@ -3,7 +3,7 @@ import Hero from './Hero'
 import BattlefieldLane from './BattlefieldLane'
 import Hand from './Hand'
 import AnimationLayer from './AnimationLayer'
-import GameContext from '../context/GameContext.jsx'
+import { GameContext } from '../context/GameContext.jsx'
 import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
 import InstructionsPanel from './InstructionsPanel.jsx'
@@ -137,6 +137,19 @@ export default function Board() {
     if (targeting.active) return
     if (!card.canAttack) return
 
+    // Check if this is a cleric unit (has healValue)
+    if (card.healValue && card.healValue > 0) {
+      // Start targeting for healing allies
+      dispatch({
+        type: 'INITIATE_HEAL_TARGETING',
+        payload: {
+          healerId: card.id,
+          healAmount: card.healValue
+        }
+      })
+      return
+    }
+
     if (!state.selectedCardId) {
       dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: card.id } })
       return
@@ -156,8 +169,26 @@ export default function Board() {
       return
     }
 
+    // Handle cleric healing targeting
+    if (state.targeting.healingActive && state.targeting.playerUsing === 'player1') {
+      if (!target && !isHero) return
+
+      // Don't heal enemy targets
+      if (targetHeroKey !== 'player1' && !target) return
+      if (target && !isCardOwner(target.id, 'player1')) return
+
+      dispatch({
+        type: 'APPLY_HEAL_WITH_TARGET',
+        payload: {
+          targetCardId: isHero ? null : (target ? target.id : null),
+          targetIsHero: isHero
+        }
+      })
+      return
+    }
+
     if (turn !== 1) return
-    
+
     const attackerId = state.selectedCardId
     if (!attackerId) return
 
@@ -177,7 +208,7 @@ export default function Board() {
     } else {
       playSound('rangedAttack')
     }
-    
+
     processAttack(attacker, target, isHero, targetHeroKey)
   }
 

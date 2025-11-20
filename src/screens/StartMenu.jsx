@@ -14,7 +14,7 @@ const StartMenu = () => {
       <div className="start-menu">
         <h1 className="start-menu-title">Card Game</h1>
         <button className="start-menu-button" onClick={handleStartClick}>
-          Start
+          Start Game
         </button>
       </div>
     </div>

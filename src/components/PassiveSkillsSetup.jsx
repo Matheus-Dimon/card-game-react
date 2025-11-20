@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { HERO_PASSIVE_OPTIONS } from '../utils/constants.js'
-import GameContext from '../context/GameContext.jsx'
+import { GameContext } from '../context/GameContext.jsx'
 
 export default function PassiveSkillsSetup() {
   const { state, dispatch } = useContext(GameContext)

@@ -39,7 +39,8 @@ const initialState = {
   selectedPassiveSkills: [],
   selectedDeckCards: [],
   selectedHeroPowers: [],
-  targeting: { active: false, playerUsing: null, power: null },
+  targeting: { active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0 },
+  healingTarget: { active: false, healerId: null, healAmount: 0 },
   animation: { active: false, element: null, startRect: null, endRect: null, callbackAction: null },
   isAITurnProcessing: false,
 }
@@ -187,6 +188,28 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
       return state
     }
 
+    case 'heal_target': {
+      const heal = power.amount || 4
+      if (targetIsHero) {
+        const updatedPlayer = {...player}
+        updatedPlayer.hp = updatedPlayer.hp + heal // Allow overheal
+        return {...state, [playerKey]: updatedPlayer}
+      } else if (targetCardId) {
+        let updatedPlayer = {...player}
+        updatedPlayer.field = safeLaneCopy(updatedPlayer.field)
+        ;['melee', 'ranged'].forEach(lane => {
+          updatedPlayer.field[lane] = updatedPlayer.field[lane].map(c => {
+            if (c.id === targetCardId) {
+              return {...c, defense: c.defense + heal} // Heal defense as HP for units
+            }
+            return c
+          })
+        })
+        return {...state, [playerKey]: updatedPlayer}
+      }
+      return state
+    }
+
     case 'heal': {
       const heal = power.amount || 2
       player.hp = player.hp + heal // SEM limite!
@@ -207,6 +230,66 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
       return {...state, [playerKey]: player}
     }
 
+    case 'charge_melee': {
+      const player = {...state[playerKey]}
+      player.field = safeLaneCopy(player.field)
+      ;['melee'].forEach(lane => {
+        player.field[lane] = player.field[lane].map(c => ({
+          ...c,
+          canAttack: true
+        }))
+      })
+      return {...state, [playerKey]: player}
+    }
+
+    case 'buff_all': {
+      const amount = power.amount || 2
+      const player = {...state[playerKey]}
+      player.field = safeLaneCopy(player.field)
+      ;['melee', 'ranged'].forEach(lane => {
+        player.field[lane] = player.field[lane].map(c => ({
+          ...c,
+          attack: c.attack + amount,
+          defense: c.defense + amount
+        }))
+      })
+      return {...state, [playerKey]: player}
+    }
+
+    case 'damage_all_enemies': {
+      const dmg = power.amount || 2
+      const opponent = {...state[opponentKey]}
+      opponent.field = safeLaneCopy(opponent.field)
+      ;['melee', 'ranged'].forEach(lane => {
+        opponent.field[lane] = opponent.field[lane].map(c => ({
+          ...c,
+          defense: c.defense - dmg
+        })).filter(c => c.defense > 0)
+      })
+      return {
+        ...state,
+        [playerKey]: player,
+        [opponentKey]: opponent
+      }
+    }
+
+    case 'mana_boost': {
+      const amount = power.amount || 2
+      const newMaxMana = Math.min((player.maxMana || 0) + amount, 10)
+      player.mana = player.mana + amount
+      player.maxMana = newMaxMana
+      return {...state, [playerKey]: player}
+    }
+
+    case 'draw_from_graveyard': {
+      // Assuming graveyard is not implemented, just draw normal
+      const count = power.amount || 1
+      const drawn = player.deck.slice(0, count).map(c => ({...c, id: `${c.id}_${Date.now()}_${Math.random()}`}))
+      player.hand = [...player.hand, ...drawn]
+      player.deck = player.deck.slice(count)
+      return {...state, [playerKey]: player}
+    }
+
     default:
       return state
   }
@@ -218,6 +301,10 @@ function reducer(state=initialState, action){
 
     case 'GO_TO_PASSIVE_SKILLS': {
       return { ...state, gamePhase: 'PASSIVE_SKILLS' };
+    }
+
+    case 'GO_TO_DECK_SETUP_DIRECT': {
+      return {...state, gamePhase: 'SETUP', selectedPassiveSkills: []};
     }
 
     case 'SET_SELECTED_PASSIVE_SKILLS': {
@@ -393,8 +480,142 @@ function reducer(state=initialState, action){
       return {...newState, targeting: {active: false, playerUsing: null, power: null}}
     }
 
+    case 'INITIATE_HEAL_TARGETING': {
+      const { healerId, healAmount } = action.payload
+      return {
+        ...state,
+        healingTarget: { active: true, healerId, healAmount }
+      }
+    }
+
+    case 'APPLY_HEAL': {
+      const { healerId, targetId, targetIsHero, healAmount } = action.payload
+      const player = { ...state.player1 }
+      let newState = { ...state }
+
+      // Mark healer as used
+      player.field = markAttackerAsUsed(player.field, healerId)
+
+      if (targetIsHero) {
+        player.hp = player.hp + healAmount // Allow overheal
+      } else if (targetId) {
+        player.field = safeLaneCopy(player.field)
+        ;['melee', 'ranged'].forEach(lane => {
+          player.field[lane] = player.field[lane].map(c => {
+            if (c.id === targetId) {
+              return { ...c, defense: c.defense + healAmount } // Heal as debug, meaning unlimited
+            }
+            return c
+          })
+        })
+      }
+
+      newState.player1 = player
+      return { ...newState, healingTarget: { active: false, healerId: null, healAmount: 0 } }
+    }
+
     case 'CANCEL_TARGETING': {
-      return {...state, targeting: {active: false, playerUsing: null, power: null}}
+      return {...state, targeting: {active: false, playerUsing: null, power: null}, healingTarget: {active: false, healerId: null, healAmount: 0}}
+    }
+
+    case 'INITIATE_HEAL_TARGETING': {
+      const { healerId, healAmount } = action.payload
+      return {
+        ...state,
+        targeting: {
+          active: false,
+          playerUsing: 'player1',
+          power: null,
+          healingActive: true,
+          healerId,
+          healAmount
+        }
+      }
+    }
+
+    case 'APPLY_HEALING': {
+      const { healerId, targetId, targetIsHero, healAmount } = action.payload
+
+      let player = {...state.player1}
+      player.field = markAttackerAsUsed(player.field, healerId) // Mark cleric as used
+
+      if (targetIsHero) {
+        player.hp = player.hp + healAmount // Allow overheal
+        return {
+          ...state,
+          player1: {...player, field: safeLaneCopy(player.field)}
+        }
+      } else if (targetId) {
+        player.field = safeLaneCopy(player.field)
+        ;['melee', 'ranged'].forEach(lane => {
+          player.field[lane] = player.field[lane].map(c => {
+            if (c.id === targetId) {
+              return {...c, defense: c.defense + healAmount} // Allow overheal for units too
+            }
+            return c
+          })
+        })
+        return {
+          ...state,
+          player1: {...player}
+        }
+      }
+      return state
+    }
+
+    case 'CANCEL_HEAL_TARGETING': {
+      return {
+        ...state,
+        targeting: {active: false, playerUsing: null, power: null, healingActive: false, healerId: null, healAmount: 0}
+      }
+    }
+
+    case 'INITIATE_HEAL_TARGETING': {
+      const { healerId, healAmount } = action.payload
+      return {
+        ...state,
+        healingTarget: { active: true, healerId, healAmount },
+        selectedCardId: null // Deselect any attacker
+      }
+    }
+
+    case 'APPLY_HEAL_WITH_TARGET': {
+      const { targetCardId, targetIsHero } = action.payload
+      const { healerId, healAmount } = state.healingTarget
+      const player = { ...state.player1 }
+
+      // Mark healer as used
+      player.field = markAttackerAsUsed(player.field, healerId)
+
+      let updatedPlayer = { ...player }
+
+      if (targetIsHero) {
+        updatedPlayer.hp = updatedPlayer.hp + healAmount // Allow overheal
+      } else if (targetCardId) {
+        updatedPlayer.field = safeLaneCopy(updatedPlayer.field)
+        ;['melee', 'ranged'].forEach(lane => {
+          updatedPlayer.field[lane] = updatedPlayer.field[lane].map(c => {
+            if (c.id === targetCardId) {
+              return { ...c, defense: c.defense + healAmount } // Allow overheal
+            }
+            return c
+          })
+        })
+      }
+
+      return {
+        ...state,
+        player1: updatedPlayer,
+        healingTarget: { active: false, healerId: null, healAmount: 0 }
+      }
+    }
+
+    case 'CANCEL_HEALING': {
+      return {
+        ...state,
+        healingTarget: { active: false, healerId: null, healAmount: 0 },
+        selectedCardId: null
+      }
     }
 
     case 'DRAW_CARD': {
@@ -422,53 +643,90 @@ function reducer(state=initialState, action){
     case 'APPLY_ATTACK_DAMAGE': {
       const {attackerId, targetId, targetIsHero, damage, playerKey} = action.payload
       const opponentKey = playerKey === 'player1' ? 'player2' : 'player1'
-      
+
       // Marca atacante como usado
       let attacker = {...state[playerKey]}
       attacker.field = markAttackerAsUsed(attacker.field, attackerId)
-      
+
       // Pega dados do atacante
       const attackerCard = [...state[playerKey].field.melee, ...state[playerKey].field.ranged]
         .find(c => c.id === attackerId)
-      
+
       let newState = {...state, [playerKey]: attacker}
 
+      // Verifica se é um clérigo (tem healValue e é CLERIC)
+      const isCleric = attackerCard?.type.name === 'Clérigo'
+
       if (targetIsHero) {
-        const opp = applyDamageToHero(state[opponentKey], damage)
-        newState = {...newState, [opponentKey]: {...opp, field: safeLaneCopy(state[opponentKey].field)}}
-        
-        // Lifesteal
-        if (attackerCard?.effects?.some(e => e.effect === 'LIFESTEAL')) {
-          const newAttacker = {...newState[playerKey]}
-          newAttacker.hp = newAttacker.hp + damage
-          newState[playerKey] = newAttacker
-        }
-        
-        if (opp.hp <= 0) {
-          return {...newState, gameOver: true, winner: playerKey}
+        if (isCleric) {
+          // Clérigo cura herói aliado
+          const player = {...state[playerKey]}
+          const healValue = attackerCard.healValue || damage
+          player.hp = player.hp + healValue // SEM limite (overheal)
+          newState = {...newState, [playerKey]: {...player, field: safeLaneCopy(state[playerKey].field)}}
+        } else {
+          // Unidade normal ataca herói inimigo
+          const opp = applyDamageToHero(state[opponentKey], damage)
+          newState = {...newState, [opponentKey]: {...opp, field: safeLaneCopy(state[opponentKey].field)}}
+
+          // Lifesteal
+          if (attackerCard?.effects?.some(e => e.effect === 'LIFESTEAL')) {
+            const newAttacker = {...newState[playerKey]}
+            newAttacker.hp = newAttacker.hp + damage
+            newState[playerKey] = newAttacker
+          }
+
+          if (opp.hp <= 0) {
+            return {...newState, gameOver: true, winner: playerKey}
+          }
         }
         return newState
       }
 
-      // Ataque a minion
-      const targetCard = [...state[opponentKey].field.melee, ...state[opponentKey].field.ranged]
-        .find(c => c.id === targetId)
-      
+      // Ataque/heal a minion
+      let player = {...state[playerKey]}
       let opp = {...state[opponentKey]}
-      opp.field = applyDamageToField(opp.field, targetId, damage, state.turnCount)
-      
-      // CONTRA-ATAQUE: Se MELEE atacou MELEE, o atacante recebe dano de volta
-      if (attackerCard?.type.lane === 'melee' && targetCard?.type.lane === 'melee') {
-        const counterDamage = targetCard.attack || 0
-        attacker.field = applyDamageToField(attacker.field, attackerId, counterDamage, state.turnCount)
+
+      if (isCleric) {
+        // Clérigo cura unidade aliada
+        const targetCard = [...state[playerKey].field.melee, ...state[playerKey].field.ranged]
+          .find(c => c.id === targetId)
+
+        if (targetCard) {
+          const healValue = attackerCard.healValue || damage
+          player.field = safeLaneCopy(player.field)
+          ;['melee', 'ranged'].forEach(lane => {
+            player.field[lane] = player.field[lane].map(c => {
+              if (c.id === targetId) {
+                return {...c, defense: c.defense + healValue} // SEM limite (overheal)
+              }
+              return c
+            })
+          })
+          newState = {...newState, [playerKey]: {...player}, [opponentKey]: {...opp, field: safeLaneCopy(state[opponentKey].field)}}
+        }
+      } else {
+        // Unidade normal ataca minion inimigo
+        const targetCard = [...state[opponentKey].field.melee, ...state[opponentKey].field.ranged]
+          .find(c => c.id === targetId)
+
+        opp.field = applyDamageToField(opp.field, targetId, damage, state.turnCount)
+
+        // CONTRA-ATAQUE: Se MELEE atacou MELEE, o atacante recebe dano de volta
+        if (attackerCard?.type.lane === 'melee' && targetCard?.type.lane === 'melee') {
+          const counterDamage = targetCard.attack || 0
+          attacker.field = applyDamageToField(attacker.field, attackerId, counterDamage, state.turnCount)
+        }
+
+        // Lifesteal
+        if (attackerCard?.effects?.some(e => e.effect === 'LIFESTEAL')) {
+          attacker.hp = attacker.hp + damage
+        }
+
+        newState = {...newState, [playerKey]: attacker, [opponentKey]: opp}
       }
-      
-      // Lifesteal
-      if (attackerCard?.effects?.some(e => e.effect === 'LIFESTEAL')) {
-        attacker.hp = attacker.hp + damage
-      }
-      
-      return {...newState, [playerKey]: attacker, [opponentKey]: opp}
+
+      return newState
     }
 
     case 'END_TURN': {
@@ -528,7 +786,7 @@ export function GameProvider({children}){
 
   useEffect(() => {
     if (state.turn !== 2 || state.gamePhase !== 'PLAYING' || state.isAITurnProcessing || state.gameOver) return
-    
+
     let cancelled = false
     const delay = ms => new Promise(r => setTimeout(r, ms))
 
@@ -539,41 +797,76 @@ export function GameProvider({children}){
 
       let mana = stateRef.current.player2.mana
       const playable = stateRef.current.player2.hand.filter(c => c.mana <= mana).sort((a,b) => b.mana - a.mana)
-      const toPlay = playable.slice(0, 2)
-      
-      for (const card of toPlay) {
-        if (cancelled) break
+
+      if (playable.length > 0) {
+        const card = playable[0]
         dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
-        mana -= card.mana
+        await delay(800)
+        if (cancelled) return
+      }
+
+      // AI Combat Phase
+      const attackerUnits = [...stateRef.current.player2.field.melee, ...stateRef.current.player2.field.ranged].filter(c => c.canAttack)
+      const opponent = stateRef.current.player1
+
+      for (const attacker of attackerUnits) {
+        if (cancelled) return
+
+        let possibleTargets = []
+        const enemyMelee = opponent.field.melee.length
+        const allEnemyMinions = [...opponent.field.melee, ...opponent.field.ranged]
+
+        if (attacker.type.lane === 'ranged') {
+          // Ranged can attack any minion or hero
+          possibleTargets = [...allEnemyMinions]
+        } else if (attacker.type.lane === 'melee') {
+          // Melee can attack enemy melee, or if none, ranged and hero
+          if (enemyMelee > 0) {
+            possibleTargets = opponent.field.melee
+          } else {
+            possibleTargets = [...allEnemyMinions]
+          }
+        }
+
+        // Sort by defense (attack weakest first)
+        possibleTargets.sort((a, b) => a.defense - b.defense)
+
+        let targetId = null
+        let targetIsHero = false
+        let damage = attacker.attack
+
+        if (possibleTargets.length > 0) {
+          targetId = possibleTargets[0].id
+        } else {
+          // No minions, attack hero
+          targetIsHero = true
+        }
+
+        dispatch({
+          type: 'APPLY_ATTACK_DAMAGE',
+          payload: { attackerId: attacker.id, targetId, targetIsHero, damage, playerKey: 'player2' }
+        })
+
         await delay(500)
       }
 
-      const attackers = [...stateRef.current.player2.field.melee, ...stateRef.current.player2.field.ranged].filter(c => c.canAttack)
-      
-      for (const attacker of attackers) {
-        if (cancelled) break
-        const enemyField = [...stateRef.current.player1.field.melee, ...stateRef.current.player1.field.ranged]
-        
-        if (enemyField.length > 0) {
-          const target = enemyField.reduce((a,b) => a.defense < b.defense ? a : b)
-          dispatch({type: 'INITIATE_ANIMATION', payload: {attackerId: attacker.id, targetId: target.id, targetIsHero: false, damage: attacker.attack || 1, playerKey: 'player2', projectile: 'stone', duration: 700, callbackAction: {type: 'APPLY_ATTACK_DAMAGE', payload: {attackerId: attacker.id, targetId: target.id, targetIsHero: false, damage: attacker.attack || 1, playerKey: 'player2'}}}})
-        } else {
-          dispatch({type: 'INITIATE_ANIMATION', payload: {attackerId: attacker.id, targetId: null, targetIsHero: true, damage: attacker.attack || 1, playerKey: 'player2', projectile: 'stone', duration: 700, callbackAction: {type: 'APPLY_ATTACK_DAMAGE', payload: {attackerId: attacker.id, targetId: null, targetIsHero: true, damage: attacker.attack || 1, playerKey: 'player2'}}}})
-        }
-        await delay(800)
-      }
-
-      if (!cancelled) {
-        dispatch({type: 'END_TURN'})
-        dispatch({type: 'SET_AI_PROCESSING', payload: false})
-      }
+      if (cancelled) return
+      dispatch({type: 'END_TURN'})
     }
 
     runAI()
-    return () => {cancelled = true}
-  }, [state.turn, state.gamePhase])
 
-  return <GameContext.Provider value={{state, dispatch}}>{children}</GameContext.Provider>
+    return () => {
+      cancelled = true
+    }
+  }, [state.turn, state.gamePhase, state.gameOver])
+
+  // Reset AI processing when AI turn ends and turn changes
+  useEffect(() => {
+    if (state.turn === 1 && state.isAITurnProcessing) {
+      dispatch({type: 'SET_AI_PROCESSING', payload: false})
+    }
+  }, [state.turn, state.isAITurnProcessing])
+
+  return <GameContext.Provider value={{ state, dispatch }}>{children}</GameContext.Provider>
 }
-
-export default GameContext

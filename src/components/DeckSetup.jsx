@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { CARD_OPTIONS } from '../utils/constants.js'
-import GameContext from '../context/GameContext'
+import { GameContext } from '../context/GameContext'
 
 export default function DeckSetup() {
   const { state, dispatch } = useContext(GameContext)
@@ -8,10 +8,22 @@ export default function DeckSetup() {
   const selected = state.selectedDeckCards || []
 
   const toggle = (id) => {
-    const newSelected = selected.includes(id) 
-      ? selected.filter(x => x !== id) 
-      : [...selected, id]
-    
+    const count = selected.filter(x => x === id).length
+    let newSelected
+    if (count > 0) {
+      // Remove one copy
+      newSelected = selected.slice()
+      const index = newSelected.lastIndexOf(id)
+      if (index !== -1) {
+        newSelected.splice(index, 1)
+      }
+    } else if (count < 3) {
+      // Add a copy, up to 3
+      newSelected = [...selected, id]
+    } else {
+      return // Can't add more than 3
+    }
+
     dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelected })
   }
 
@@ -73,9 +85,10 @@ export default function DeckSetup() {
                 </div>
               )}
             </div>
-            {selected.includes(c.id) && (
-              <div className="selected-badge">✓</div>
-            )}
+            {(() => {
+              const count = selected.filter(x => x === c.id).length
+              return count > 0 && <div className="selected-badge">{count}</div>
+            })()}
           </div>
         ))}
       </div>
