@@ -366,8 +366,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_atk_boost",
       name: "Fúria de Batalha",
       icon: "⚔️",
-      description: "Suas unidades têm +2 de ataque",
-      effect: { stat: 'attack', value: 2 }
+      description: "Suas unidades têm +3 de ataque",
+      effect: { stat: 'attack', value: 3 }
     },
     {
       id: "passive_mana_regen",
@@ -387,15 +387,15 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_armor_start",
       name: "Armadura Celestial",
       icon: "🛡️",
-      description: "Comece com 10 de armadura",
-      effect: { stat: 'startingArmor', value: 10 }
+      description: "Comece com 15 de armadura",
+      effect: { stat: 'startingArmor', value: 15 }
     },
     {
       id: "passive_hp_hero",
       name: "Vitalidade Suprema",
       icon: "💪",
-      description: "Comece com +10 de vida",
-      effect: { stat: 'startingHP', value: 10 }
+      description: "Comece com +15 de vida",
+      effect: { stat: 'startingHP', value: 15 }
     },
     {
       id: "passive_cheaper_minions",
@@ -415,8 +415,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_ranged_damage",
       name: "Precisão Letal",
       icon: "🎯",
-      description: "Suas unidades ranged têm +3 ataque",
-      effect: { stat: 'rangedAttack', value: 3 }
+      description: "Suas unidades ranged têm +4 ataque",
+      effect: { stat: 'rangedAttack', value: 4 }
     },
     {
       id: "passive_hero_power_cheap",
