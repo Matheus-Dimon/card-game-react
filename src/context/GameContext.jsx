@@ -46,6 +46,7 @@ const initialState = {
   healingTarget: { active: false, healerId: null, healAmount: 0 },
   animation: { active: false, element: null, startRect: null, endRect: null, callbackAction: null },
   isAITurnProcessing: false,
+  soundEnabled: true,
 }
 
 /* ------------------- AI Selections ------------------- */

@@ -12,9 +12,9 @@ import { HERO_IMAGES } from '../utils/constants.js'
 // Sistema de sons MELHORADO
 const playSound = (type) => {
   try {
+    const ctx = new AudioContext()
     const sounds = {
       cardPlay: () => {
-        const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
@@ -25,51 +25,97 @@ const playSound = (type) => {
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.3)
       },
-      // Som de ESPADA para ataques melee
-      meleeAttack: () => {
-        const ctx = new AudioContext()
+      // Som de ESPADA normal - curto e seco
+      sword_normal: () => {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         const filter = ctx.createBiquadFilter()
 
         filter.type = 'bandpass'
-        filter.frequency.value = 800
+        filter.frequency.value = 1000
 
         osc.connect(filter)
         filter.connect(gain)
         gain.connect(ctx.destination)
 
         osc.type = 'sawtooth'
-        osc.frequency.setValueAtTime(300, ctx.currentTime)
-        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.15)
+        osc.frequency.setValueAtTime(400, ctx.currentTime)
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.12)
 
-        gain.gain.setValueAtTime(0.5, ctx.currentTime)
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+        gain.gain.setValueAtTime(0.6, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12)
 
         osc.start(ctx.currentTime)
-        osc.stop(ctx.currentTime + 0.15)
+        osc.stop(ctx.currentTime + 0.12)
       },
-      // Som de FLECHA para ataques ranged
-      rangedAttack: () => {
-        const ctx = new AudioContext()
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
+      // Som de ESPADA crítico - mais intenso com brilho adicional
+      sword_critical: () => {
+        // Base strike
+        const osc1 = ctx.createOscillator()
+        const gain1 = ctx.createGain()
+        const filter1 = ctx.createBiquadFilter()
 
-        osc.connect(gain)
-        gain.connect(ctx.destination)
+        filter1.type = 'bandpass'
+        filter1.frequency.value = 1000
 
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(2000, ctx.currentTime)
-        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.2)
+        osc1.connect(filter1)
+        filter1.connect(gain1)
+        gain1.connect(ctx.destination)
 
-        gain.gain.setValueAtTime(0.4, ctx.currentTime)
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
+        osc1.type = 'sawtooth'
+        osc1.frequency.setValueAtTime(400, ctx.currentTime)
+        osc1.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2)
 
-        osc.start(ctx.currentTime)
-        osc.stop(ctx.currentTime + 0.2)
+        gain1.gain.setValueAtTime(0.7, ctx.currentTime)
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
+
+        osc1.start(ctx.currentTime)
+        osc1.stop(ctx.currentTime + 0.2)
+
+        // Critical shimmer
+        const osc2 = ctx.createOscillator()
+        const gain2 = ctx.createGain()
+        osc2.connect(gain2)
+        gain2.connect(ctx.destination)
+        osc2.type = 'sine'
+        osc2.frequency.value = 1500
+        gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.1)
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4)
+        osc2.start(ctx.currentTime + 0.1)
+        osc2.stop(ctx.currentTime + 0.4)
+      },
+      // Som de FLECHA - whizz lançamento + impacto
+      arrow: () => {
+        // Launch whizz
+        const osc1 = ctx.createOscillator()
+        const gain1 = ctx.createGain()
+
+        osc1.connect(gain1)
+        gain1.connect(ctx.destination)
+
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(2000, ctx.currentTime)
+        osc1.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.15)
+
+        gain1.gain.setValueAtTime(0.5, ctx.currentTime)
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+
+        osc1.start(ctx.currentTime)
+        osc1.stop(ctx.currentTime + 0.15)
+
+        // Impact
+        const osc2 = ctx.createOscillator()
+        const gain2 = ctx.createGain()
+        osc2.connect(gain2)
+        gain2.connect(ctx.destination)
+        osc2.type = 'square'
+        osc2.frequency.value = 120
+        gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.15)
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
+        osc2.start(ctx.currentTime + 0.15)
+        osc2.stop(ctx.currentTime + 0.3)
       },
       impact: () => {
-        const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
@@ -82,7 +128,6 @@ const playSound = (type) => {
         osc.stop(ctx.currentTime + 0.15)
       },
       heroPower: () => {
-        const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
@@ -95,23 +140,47 @@ const playSound = (type) => {
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.3)
       },
-      heal: () => {
-        const ctx = new AudioContext()
-        const notes = [523, 659, 784] // C5, E5, G5
+      // Cura sutil - curta e suave
+      heal_small: () => {
+        const osc1 = ctx.createOscillator()
+        const gain1 = ctx.createGain()
+        osc1.connect(gain1)
+        gain1.connect(ctx.destination)
+        osc1.type = 'sine'
+        osc1.frequency.value = 800
+        gain1.gain.setValueAtTime(0.4, ctx.currentTime)
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25)
+        osc1.start(ctx.currentTime)
+        osc1.stop(ctx.currentTime + 0.25)
+
+        const osc2 = ctx.createOscillator()
+        const gain2 = ctx.createGain()
+        osc2.connect(gain2)
+        gain2.connect(ctx.destination)
+        osc2.type = 'triangle'
+        osc2.frequency.value = 600
+        gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.05)
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3)
+        osc2.start(ctx.currentTime + 0.05)
+        osc2.stop(ctx.currentTime + 0.3)
+      },
+      // Cura grandiosa - envolvente com mais harpas
+      heal_large: () => {
+        const notes = [523, 659, 784, 1047] // C5, E5, G5, C6
         notes.forEach((freq, i) => {
           const osc = ctx.createOscillator()
           const gain = ctx.createGain()
           osc.connect(gain)
           gain.connect(ctx.destination)
+          osc.type = 'sine'
           osc.frequency.value = freq
-          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1)
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3)
-          osc.start(ctx.currentTime + i * 0.1)
-          osc.stop(ctx.currentTime + i * 0.1 + 0.3)
+          gain.gain.setValueAtTime(0.35, ctx.currentTime + i * 0.08)
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.5)
+          osc.start(ctx.currentTime + i * 0.08)
+          osc.stop(ctx.currentTime + i * 0.08 + 0.5)
         })
       },
       damage: () => {
-        const ctx = new AudioContext()
         const noise = ctx.createBufferSource()
         const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate)
         const data = buffer.getChannelData(0)
@@ -131,7 +200,6 @@ const playSound = (type) => {
         noise.start(ctx.currentTime)
       },
       victory: () => {
-        const ctx = new AudioContext()
         const notes = [523, 659, 784, 1047]
         notes.forEach((freq, i) => {
           const osc = ctx.createOscillator()
@@ -139,15 +207,18 @@ const playSound = (type) => {
           osc.connect(gain)
           gain.connect(ctx.destination)
           osc.frequency.value = freq
-          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.15)
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.4)
-          osc.start(ctx.currentTime + i * 0.15)
-          osc.stop(ctx.currentTime + i * 0.15 + 0.4)
+          gain.gain.setValueAtTime(0.2, ctx.currentTime)
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+          osc.start(ctx.currentTime + i * 0.1)
+          osc.stop(ctx.currentTime + i * 0.1 + 0.4)
         })
       }
     }
 
-    if (sounds[type]) sounds[type]()
+    if (sounds[type]) {
+      const soundFunc = sounds[type]
+      soundFunc()
+    }
   } catch (err) {
     console.log('Audio context error:', err)
   }
@@ -301,9 +372,10 @@ export default function Board() {
 
     // Toca som apropriado baseado no tipo de ataque
     if (attacker.type.lane === 'melee') {
-      playSound('meleeAttack')
+      const isCritical = attacker.attack >= 7 // Threshold for critical attack
+      playSound(isCritical ? 'sword_critical' : 'sword_normal')
     } else {
-      playSound('rangedAttack')
+      playSound('arrow')
     }
 
     processAttack(attacker, target, isHero, targetHeroKey)
