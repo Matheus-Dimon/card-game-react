@@ -51,6 +51,7 @@ export default function Hand({ cards = [], onPlayCard, playerMana }) {
         {cards.map((c, index) => (
           <motion.div
             key={c.id}
+            data-card-id={c.id}
             variants={cardVariants}
             layout
             layoutId={c.id}

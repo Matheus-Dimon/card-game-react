@@ -230,7 +230,7 @@ export default function Board() {
       if (healer) {
         const healerEl = document.querySelector(`[data-card-id="${healer.id}"]`)
         const targetEl = isHero
-          ? document.querySelector(`[data-hero="${player1.hero ? 'player1' : 'player1'}"]`)
+          ? document.querySelector(`[data-hero="player1"]`)
           : (target ? document.querySelector(`[data-card-id="${target.id}"]`) : null)
 
         if (healerEl && targetEl) {
@@ -615,7 +615,7 @@ export default function Board() {
         </div>
       </div>
 
-      <div className="board-divider" />>
+      <div className="board-divider" />
 
       <div className="board-section board-bottom">
         <div className="lanes-vertical">

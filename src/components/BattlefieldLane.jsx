@@ -58,6 +58,7 @@ export default function BattlefieldLane({ cards = [], laneType, playerKey, onCar
             return (
               <motion.div
                 key={c.id}
+                data-card-id={c.id}
                 variants={cardVariants}
                 layout
                 layoutId={c.id}
