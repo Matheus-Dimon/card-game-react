@@ -74,6 +74,44 @@ export default function AnimationLayer({ animation, onComplete }) {
       }
     }
 
+    const createHealParticleEffect = (x, y) => {
+      // Create healing particles - green and glowing
+      for (let i = 0; i < 15; i++) {
+        setTimeout(() => {
+          const particle = document.createElement('div')
+          particle.className = 'heal-particle'
+          particle.style.left = `${x + (Math.random() - 0.5) * 60}px`
+          particle.style.top = `${y + (Math.random() - 0.5) * 60}px`
+
+          const angle = Math.random() * Math.PI * 2
+          const distance = 50 + Math.random() * 100
+          particle.style.setProperty('--end-x', `${Math.cos(angle) * distance}px`)
+          particle.style.setProperty('--end-y', `${Math.sin(angle) * distance - 50}px`)
+
+          document.body.appendChild(particle)
+
+          setTimeout(() => {
+            if (particle.parentNode) {
+              particle.parentNode.removeChild(particle)
+            }
+          }, 1200)
+        }, Math.random() * 200)
+      }
+
+      // Create healing aura effect
+      const aura = document.createElement('div')
+      aura.className = 'healing-aura'
+      aura.style.left = `${x - 40}px`
+      aura.style.top = `${y - 40}px`
+      document.body.appendChild(aura)
+
+      setTimeout(() => {
+        if (aura.parentNode) {
+          aura.parentNode.removeChild(aura)
+        }
+      }, 1500)
+    }
+
     const createImpactEffect = (x, y) => {
       // Create circular impact burst
       const impact = document.createElement('div')
@@ -97,6 +135,39 @@ export default function AnimationLayer({ animation, onComplete }) {
           targetEl.style.animation = ''
         }, 300)
       }
+    }
+
+    const createHeroPowerEffect = (x, y, effectType) => {
+      const effect = document.createElement('div')
+      effect.className = 'hero-power-effect'
+
+      switch(effectType) {
+        case 'damage':
+          effect.classList.add('fire-effect')
+          break
+        case 'heal':
+        case 'heal_target':
+          effect.classList.add('heal-effect')
+          break
+        case 'draw':
+          effect.classList.add('magic-effect')
+          break
+        case 'armor':
+          effect.classList.add('shield-effect')
+          break
+        default:
+          effect.classList.add('default-effect')
+      }
+
+      effect.style.left = `${x - 50}px`
+      effect.style.top = `${y - 50}px`
+      document.body.appendChild(effect)
+
+      setTimeout(() => {
+        if (effect.parentNode) {
+          effect.parentNode.removeChild(effect)
+        }
+      }, 1200)
     }
 
     // Create projectile element
@@ -151,6 +222,16 @@ export default function AnimationLayer({ animation, onComplete }) {
     const impactTimeout = setTimeout(() => {
       createParticleEffect(targetX, targetY)
       createImpactEffect(targetX, targetY)
+
+      // Enhanced effects for healing
+      if ((animation.damage || 0) < 0) {
+        createHealParticleEffect(targetX, targetY)
+      }
+
+      // Enhanced effects for hero powers
+      if (animation.heroPowerEffect) {
+        createHeroPowerEffect(targetX, targetY, animation.heroPowerEffect)
+      }
 
       if (projectile.parentNode) {
         projectile.parentNode.removeChild(projectile)

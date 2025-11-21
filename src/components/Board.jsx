@@ -94,6 +94,41 @@ const playSound = (type) => {
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.3)
       },
+      heal: () => {
+        const ctx = new AudioContext()
+        const notes = [523, 659, 784] // C5, E5, G5
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator()
+          const gain = ctx.createGain()
+          osc.connect(gain)
+          gain.connect(ctx.destination)
+          osc.frequency.value = freq
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1)
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3)
+          osc.start(ctx.currentTime + i * 0.1)
+          osc.stop(ctx.currentTime + i * 0.1 + 0.3)
+        })
+      },
+      damage: () => {
+        const ctx = new AudioContext()
+        const noise = ctx.createBufferSource()
+        const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate)
+        const data = buffer.getChannelData(0)
+        for (let i = 0; i < data.length; i++) {
+          data[i] = Math.random() * 2 - 1
+        }
+        noise.buffer = buffer
+        const filter = ctx.createBiquadFilter()
+        filter.type = 'lowpass'
+        filter.frequency.value = 800
+        const gain = ctx.createGain()
+        noise.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+        gain.gain.setValueAtTime(0.5, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
+        noise.start(ctx.currentTime)
+      },
       victory: () => {
         const ctx = new AudioContext()
         const notes = [523, 659, 784, 1047]
@@ -485,6 +520,7 @@ export default function Board() {
       duration: 800, // Smooth like Hearthstone
       damage: power.effect === 'damage' ? damageVal : null,
       projectile,
+      heroPowerEffect: power.effect,
       callbackAction: {
         type: 'APPLY_HERO_POWER_WITH_TARGET',
         payload: {
