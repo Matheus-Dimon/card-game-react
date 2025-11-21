@@ -12,7 +12,7 @@ const StartMenu = () => {
   return (
     <div className="start-menu-container">
       <div className="start-menu">
-        <h1 className="start-menu-title">Card Game</h1>
+        <h1 className="start-menu-title">NEVER LUCKY</h1>
         <button className="start-menu-button" onClick={handleStartClick}>
           Start Game
         </button>

@@ -1220,7 +1220,10 @@ body{
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #1a1a1a;
+  background-image: url('../images/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: white;
 }
 
@@ -1229,18 +1232,21 @@ body{
 }
 
 .start-menu-title {
-  font-size: 3em;
+  font-size: 7em;
   margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 2px 2px 4px rgba(0, 0, 0, 1);
+  color: #333;
 }
 
 .start-menu-button {
-  padding: 10px 20px;
-  font-size: 1.5em;
+  padding: 20px 40px;
+  font-size: 2em;
   cursor: pointer;
-  background-color: #4caf50;
+  background-color: black;
   color: white;
   border: none;
   border-radius: 5px;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
 }
 
 .card.playable {
