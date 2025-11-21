@@ -68,14 +68,21 @@ function selectAIPassives() {
 function selectAIDeck() {
   const pool = CARD_OPTIONS.P2
   const selected = {}
-  // Prioritize cards with effects, high stats, low cost
+  // Priorize cartas com efeitos, stats altos, e MUITO mais importante, CUSTO BAIXO
   const scored = pool.map(card => ({
     ...card,
-    score: (card.attack || 0) + (card.defense || 0) + ((card.effects?.length || 0) * 5) - (card.mana * 2) + Math.random() * 3
+    // NOVA HEURÍSTICA DE SCORE:
+    score: (card.attack || 0) + (card.defense || 0) +
+           ((card.effects?.length || 0) * 5) +
+           (card.mana < 3 ? 15 : 0) - // GRANDE BÔNUS para cartas de custo 1 ou 2
+           (card.mana * 5) + // AUMENTAR a penalidade para cartas de alto custo
+           Math.random() * 3
   })).sort((a,b) => b.score - a.score)
 
+  // O restante da lógica para montar o deck e preencher o tamanho de 15 é mantida...
   scored.forEach(card => {
     const count = selected[card.id] || 0
+    // Lembre-se: o limite de cópias é definido em outro lugar, aqui é 3 por padrão
     if (count < 3) {
       selected[card.id] = count + 1
     }
@@ -833,7 +840,7 @@ export function GameProvider({children}){
             if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
             cost = Math.max(1, cost)
             // Only consider cards with effective cost of 1 or 2
-            return cost <= remainingMana && cost <= 2
+            return cost <= remainingMana
           }).sort((a, b) => {
             // Sort by mana cost ascending to prioritize low cost (mana curve)
             let aCost = a.mana
@@ -844,8 +851,8 @@ export function GameProvider({children}){
             }
             if (aCost === bCost) {
               // If tied, prioritize highest stat value (attack + defense)
-              const aStats = (a.attack || 0) + (a.defense || 0)
-              const bStats = (b.attack || 0) + (b.defense || 0)
+              let aStats = (a.attack || 0) + (a.defense || 0)
+              let bStats = (b.attack || 0) + (b.defense || 0)
               if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) {
                 aStats += 1
                 bStats += 1
@@ -875,36 +882,54 @@ export function GameProvider({children}){
           if (cancelled) return
         }
       } else {
-        // Post-curve: Single card play with full scoring
-        const playable = state.player2.hand.filter(c => {
-          let cost = c.mana
-          if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
-          cost = Math.max(1, cost)
-          return cost <= mana
-        }).map(card => {
-          let attack = card.attack || 0
-          let defense = card.defense || 0
-          if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) defense += 1
-          if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) attack += 1
-          if (card.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) attack += 1
+        // Post-curve: Joga múltiplas cartas até ficar sem mana (Greedy Strategy)
+        let remainingMana = mana
+        const handCopy = [...state.player2.hand]
 
-          let cost = card.mana
-          if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
-          cost = Math.max(1, cost)
+        while (remainingMana > 0) {
+          
+          // 1. Filtra todas as cartas jogáveis com o Mana restante
+          const playable = handCopy.filter(c => {
+            let cost = c.mana
+            if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+            cost = Math.max(1, cost)
+            return cost <= remainingMana
+          }).map(card => {
+            // 2. Calcula o Score (mesma fórmula anterior)
+            let attack = card.attack || 0
+            let defense = card.defense || 0
+            if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) defense += 1
+            if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) attack += 1
+            if (card.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) attack += 1
 
-          // Score: efficiency + effects
-          let score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
-          return {...card, aiScore: score, effectiveCost: cost}
-        }).sort((a,b) => b.aiScore - a.aiScore)
+            let cost = card.mana
+            if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+            cost = Math.max(1, cost)
 
-        if (playable.length > 0) {
+            let score = 0
+            score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
+            const tempoFactor = (remainingMana / cost) * 0.5
+            score = score + tempoFactor
+            return {...card, aiScore: score, effectiveCost: cost}
+          }).sort((a,b) => b.aiScore - a.aiScore) // 3. Ordena pelo maior score
+
+          // 4. Se não houver mais cartas jogáveis, encerra o loop
+          if (playable.length === 0) break
+
+          // 5. Joga a carta de melhor score
           const card = playable[0]
+          
           dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
-          mana -= card.effectiveCost
+          remainingMana -= card.effectiveCost
+
+          // Remove a carta da mão para a próxima iteração
+          const index = handCopy.findIndex(c => c.id === card.id)
+          handCopy.splice(index, 1)
+
           await delay(800)
           if (cancelled) return
         }
-      }
+      } // FIM DA SEÇÃO ELSE (Mid/Late Game)
 
       // Use hero power if beneficial
       const currentState = stateRef.current
@@ -914,36 +939,68 @@ export function GameProvider({children}){
       heroPowers.forEach(power => {
         if (currentState.player2.mana >= power.cost && !currentState.player2.hasUsedHeroPower) {
           let score = 0
+          score += (4 - power.cost) // Mana efficiency factor
           const opponent = currentState.player1
-          const hasMinions = [...opponent.field.melee, ...opponent.field.ranged].length > 0
+          const aiField = currentState.player2
+          const hasEnemyMinions = [...opponent.field.melee, ...opponent.field.ranged].length > 0
+          const hasAiMinions = [...aiField.field.melee, ...aiField.field.ranged].length > 0
           const oppHp = opponent.hp
+          const aiHp = currentState.player2.hp
+          const turnCount = currentState.turnCount
 
           switch (power.effect) {
             case 'damage':
-              if (oppHp < 10) score = 10 - oppHp // Prioritize finishing hero
-              else score = oppHp > 20 ? 0 : 5 // Low priority
+              if (hasEnemyMinions) {
+                // Target minions first if they exist
+                score += 3
+              } else if (oppHp <= power.amount) {
+                score += 10 // Finishing blow
+              } else {
+                score += Math.max(0, 8 - oppHp / 10) // Less useful against high HP heroes
+              }
               break
             case 'heal_target':
-              if (currentState.player2.hp < 20) score = 8
-              else score = 4
+              if (aiHp < 15) score += 8
+              else if (aiHp < 25) score += 6
+              else if (hasAiMinions) score += 4 // Heal units instead
+              else score += 2
               break
             case 'armor':
-              if (currentState.player2.hp < 15) score = 7
+              if (aiHp < 20 && hasEnemyMinions) score += 7
+              else if (aiHp < 15) score += 5
+              else score += 2
               break
             case 'draw':
-              if (currentState.player2.deck.length > 5) score = 6
+              if (currentState.player2.deck.length >= 3) score += 5
+              else if (turnCount > 6) score += 3
+              else score += 1
               break
             case 'charge_melee':
-              if (hasMinions) score = 3
+              if (hasEnemyMinions && turnCount > 2) score += 6
+              else if (hasAiMinions) score += 4
+              else score += 1
               break
             case 'buff_all':
-              if (hasMinions) score = 2
+              if (hasAiMinions) score += 5
+              else score += 2
               break
             case 'damage_all_enemies':
-              if (hasMinions) score = 4
+              if (hasEnemyMinions) {
+                const enemyMinionCount = [...opponent.field.melee, ...opponent.field.ranged].length
+                score += Math.min(8, enemyMinionCount * 2) // More valuable against many minions
+              }
+              break
+            case 'heal':
+              if (aiHp < 20) score += 6
+              else if (aiHp < 30) score += 4
+              else score += 2
+              break
+            case 'mana_boost':
+              if (turnCount > 7) score += power.amount * 2 // More valuable late game
+              else score += power.amount
               break
             default:
-              score = 1
+              score += 1
           }
 
           if (score > bestPowerScore) {
