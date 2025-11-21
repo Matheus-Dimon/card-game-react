@@ -517,13 +517,195 @@ body{
 /* Deck Setup */
 .deck-setup, .hero-power-setup{
   padding: 30px;
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
   background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(0,0,0,0.98)),
               url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&h=1080&fit=crop&q=80');
   background-size: cover;
   min-height: 100vh;
   border-radius: 20px;
+}
+
+.deck-setup-container{
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.deck-selection-area{
+  flex: 1;
+}
+
+.selected-cards-panel{
+  width: 350px;
+  background: linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));
+  border-radius: 16px;
+  padding: 20px;
+  border: 3px solid rgba(139,92,46,0.4);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 8px 25px rgba(139,92,46,0.3);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.selected-cards-panel h3{
+  font-size: 18px;
+  color: #fbbf24;
+  margin: 0 0 16px 0;
+  font-weight: 900;
+  text-align: center;
+  border-bottom: 2px solid rgba(245,192,107,0.3);
+  padding-bottom: 8px;
+}
+
+.selected-cards-list{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-cards-panel::-webkit-scrollbar{
+  width: 8px;
+}
+
+.selected-cards-panel::-webkit-scrollbar-track{
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+.selected-cards-panel::-webkit-scrollbar-thumb{
+  background: rgba(245,192,107,0.5);
+  border-radius: 4px;
+}
+
+.selected-cards-panel::-webkit-scrollbar-thumb:hover{
+  background: rgba(245,192,107,0.8);
+}
+
+.selected-card-item{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,41,59,0.6));
+  border: 2px solid rgba(139,92,46,0.2);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.selected-card-item:hover{
+  transform: translateY(-3px);
+  border-color: rgba(255,0,0,0.8);
+  box-shadow: 0 8px 25px rgba(255,0,0,0.4), 0 20px 50px rgba(0,0,0,0.6);
+  background: linear-gradient(135deg, rgba(255,0,0,0.1), rgba(255,68,68,0.05));
+  animation: bright-red-glow 0.5s ease-out;
+}
+
+@keyframes bright-red-glow{
+  0%{box-shadow: 0 4px 12px rgba(0,0,0,0.4);}
+  50%{box-shadow: 0 8px 25px rgba(255,0,0,0.6), 0 20px 50px rgba(0,0,0,0.6);}
+  100%{box-shadow: 0 8px 25px rgba(255,0,0,0.4), 0 20px 50px rgba(0,0,0,0.6);}
+}
+
+.selected-card-number{
+  font-weight: 800;
+  color: #fbbf24;
+  min-width: 30px;
+  text-align: center;
+}
+
+.selected-card-image{
+  width: 50px;
+  height: 70px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  border: 2px solid rgba(139,92,46,0.3);
+}
+
+.selected-card-image img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selected-card-info{
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-card-name{
+  font-weight: 800;
+  font-size: 14px;
+  color: #fbbf24;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-card-stats{
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selected-card-stats .mana-cost{
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+}
+
+.selected-card-stats .attack{
+  color: #ff6b6b;
+}
+
+.selected-card-stats .defense{
+  color: #4dabf7;
+}
+
+.empty-selection{
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.bright-warning{
+  text-align: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,215,0,1), 0 4px 8px rgba(255,215,0,0.8);
+  background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,69,0,0.1));
+  padding: 15px;
+  border-radius: 12px;
+  border: 3px solid rgba(255,215,0,0.8);
+  box-shadow: 0 0 40px rgba(255,215,0,0.6), inset 0 0 20px rgba(255,215,0,0.2);
+  animation: bright-glow 1.5s infinite alternate;
+  margin: 20px 0;
+}
+
+@keyframes bright-glow{
+  0%{
+    box-shadow: 0 0 40px rgba(255,215,0,0.6), inset 0 0 20px rgba(255,215,0,0.2);
+    text-shadow: 0 0 20px rgba(255,215,0,1), 0 4px 8px rgba(255,215,0,0.8);
+  }
+  100%{
+    box-shadow: 0 0 60px rgba(255,215,0,0.9), inset 0 0 30px rgba(255,215,0,0.3);
+    text-shadow: 0 0 30px rgba(255,215,0,1), 0 6px 12px rgba(255,215,0,0.8);
+  }
+}
+
+.deck-complete{
+  color: #4ade80 !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 15px rgba(74,222,128,0.8) !important;
 }
 
 .setup-header{
