@@ -52,7 +52,7 @@ export default function Card({ card, isField = false, onClick, className = '', s
 
     const checkCollisions = () => {
       const currentRect = cardRef.current.getBoundingClientRect()
-      const otherCards = document.querySelectorAll('[data-card-id]:not([data-card-id="' + card.id + '"])']
+      const otherCards = document.querySelectorAll('[data-card-id]:not([data-card-id="' + card.id + '"])')
 
 
       otherCards.forEach(otherCardEl => {
