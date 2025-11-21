@@ -2,7 +2,7 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Card from './Card'
 
-export default function BattlefieldLane({ cards = [], laneType, playerKey, onCardClick, selectedCardId = null, selectedOwner = null }) {
+export default function BattlefieldLane({ cards = [], laneType, playerKey, onCardClick, selectedCardId = null, selectedOwner = null, turnCount }) {
   const laneVariants = {
     hidden: {},
     visible: {
@@ -55,6 +55,7 @@ export default function BattlefieldLane({ cards = [], laneType, playerKey, onCar
           {cards.map(c => {
             const selected = selectedCardId === c.id
             const isTargetable = selectedCardId && selectedOwner && selectedOwner !== playerKey
+            const hasRedBorder = (c.turnPlayed === turnCount && !c.effects?.some(e => e.effect === 'CHARGE')) || !c.canAttack
             return (
               <motion.div
                 key={c.id}
@@ -72,6 +73,7 @@ export default function BattlefieldLane({ cards = [], laneType, playerKey, onCar
                   onClick={() => onCardClick && onCardClick(c)}
                   selected={selected}
                   isTargetable={isTargetable}
+                  hasRedBorder={hasRedBorder}
                 />
               </motion.div>
             )

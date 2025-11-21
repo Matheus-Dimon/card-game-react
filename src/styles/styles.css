@@ -833,6 +833,23 @@ body{
   opacity: 0.6;
   filter: grayscale(0.4);
 }
+
+/* Unit Attackability Borders */
+.unit-unattackable{
+  border: 3px solid rgba(255,0,0,0.9);
+  box-shadow: 0 0 20px rgba(255,0,0,0.4);
+}
+
+.unit-attackable{
+  border: 3px solid rgba(0,255,0,0.9);
+  box-shadow: 0 0 30px rgba(0,255,0,0.6), 0 8px 25px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+  animation: unitGreenGlow 1.5s infinite alternate;
+}
+
+@keyframes unitGreenGlow {
+  0% { box-shadow: 0 0 30px rgba(0,255,0,0.6), 0 8px 25px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1); }
+  100% { box-shadow: 0 0 40px rgba(0,255,0,1), 0 8px 25px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15); }
+}
 .hero-power-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

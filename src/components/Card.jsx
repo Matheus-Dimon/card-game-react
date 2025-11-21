@@ -117,7 +117,7 @@ export default function Card({ card, isField = false, onClick, className = '', s
       ref={cardRef}
       data-card-id={card.id}
       onClick={() => onClick && onClick(card)}
-      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${!card.canAttack && isField ? 'card-tired' : ''} ${playable ? 'playable' : 'not-playable'}`}
+      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${isField && card.canAttack ? 'unit-attackable' : ''} ${isField && !card.canAttack ? 'unit-unattackable' : ''} ${playable ? 'playable' : 'not-playable'}`}
       style={{
         x: smoothX,
         y: smoothY,
