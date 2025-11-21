@@ -7,6 +7,7 @@ import heroiP2 from '../images/herói p2.jpg'
 
 export const STARTING_HP = 30
 export const STARTING_MANA = 1
+export const STARTING_MANAP2 = 3
 export const MAX_MANA = 10
 
 // Imagens locais para as cartas
