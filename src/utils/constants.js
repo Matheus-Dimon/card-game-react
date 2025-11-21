@@ -1,17 +1,9 @@
 // Import local images
-import guerreiro1 from '../images/guerreiro1.png'
-import guerreiro2 from '../images/guerreiro2.png'
-import guerreiro3 from '../images/guerreiro3.png'
-import guerreiro6 from '../images/guerreiro6.png.png'
-import arqueiro from '../images/arqueiro.png'
-import arqueiro2 from '../images/arqueiro2.png'
-import arqueiro3 from '../images/arqueiro3.png'
-import arqueiro4 from '../images/arqueiro4.png'
-import clerigo from '../images/clerigo.png'
-import clerigo2 from '../images/clerigo2.png'
-import clerigo3 from '../images/clerigo3.png'
-import clerigo4 from '../images/clerigo4.png'
-import clerigo5 from '../images/clerigo5.png'
+import arqueirosImg from '../images/arqueiros.jpg'
+import clerigosImg from '../images/clerigos.jpg'
+import guerreirosImg from '../images/guerreiros.jpg'
+import heroiP1 from '../images/herói p1.jpg'
+import heroiP2 from '../images/herói p2.jpg'
 
 export const STARTING_HP = 30
 export const STARTING_MANA = 1
@@ -19,25 +11,30 @@ export const MAX_MANA = 10
 
 // Imagens locais para as cartas
 export const CARD_IMAGE_URLS = {
-  WARRIOR: guerreiro1,
-  WARRIOR_2: guerreiro2,
-  WARRIOR_3: guerreiro3,
-  ARCHER: arqueiro,
-  ARCHER_2: arqueiro2,
-  ARCHER_3: arqueiro3,
-  CLERIC: clerigo,
-  CLERIC_2: clerigo2,
-  CLERIC_3: clerigo3,
+  WARRIOR: guerreirosImg,
+  WARRIOR_2: guerreirosImg,
+  WARRIOR_3: guerreirosImg,
+  ARCHER: arqueirosImg,
+  ARCHER_2: arqueirosImg,
+  ARCHER_3: arqueirosImg,
+  CLERIC: clerigosImg,
+  CLERIC_2: clerigosImg,
+  CLERIC_3: clerigosImg,
   // Using additional images for variety
-  DARK_WARRIOR: guerreiro6,
-  DARK_MAGE: clerigo4,
-  BEAST: arqueiro4,
+  DARK_WARRIOR: guerreirosImg,
+  DARK_MAGE: clerigosImg,
+  BEAST: arqueirosImg,
 }
 
 export const UNIT_TYPES = {
-  WARRIOR: { name: 'Guerreiro', lane: 'melee', color: 'bg-red-500' },
-  ARCHER: { name: 'Arqueiro', lane: 'ranged', color: 'bg-green-500' },
-  CLERIC: { name: 'Clérigo', lane: 'ranged', color: 'bg-yellow-500' },
+  WARRIOR: { name: 'Guerreiro', lane: 'melee', color: 'bg-red-500', backgroundImage: guerreirosImg },
+  ARCHER: { name: 'Arqueiro', lane: 'ranged', color: 'bg-green-500', backgroundImage: arqueirosImg },
+  CLERIC: { name: 'Clérigo', lane: 'ranged', color: 'bg-yellow-500', backgroundImage: clerigosImg },
+}
+
+export const HERO_IMAGES = {
+  PLAYER1: heroiP1,
+  PLAYER2: heroiP2,
 }
 
 // Sistema de efeitos para cartas

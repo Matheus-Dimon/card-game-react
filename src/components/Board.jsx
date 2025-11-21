@@ -7,6 +7,7 @@ import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
 import InstructionsPanel from './InstructionsPanel.jsx'
 import AnimationLayer from './AnimationLayer.jsx'
+import { HERO_IMAGES } from '../utils/constants.js'
 
 // Sistema de sons MELHORADO
 const playSound = (type) => {
@@ -606,7 +607,7 @@ export default function Board() {
             hp={player2.hp}
             mana={player2.mana}
             armor={player2.armor}
-            image="https://images.unsplash.com/photo-1589561253898-768105ca91a8?w=200&h=200&fit=crop"
+            image={HERO_IMAGES.PLAYER2}
             onClick={() => onTargetClick(null, true, 'player2')}
             isTargetable={isPlayer2HeroTargetable()}
           />
@@ -670,7 +671,7 @@ export default function Board() {
             hp={player1.hp}
             mana={player1.mana}
             armor={player1.armor}
-            image="https://images.unsplash.com/photo-1605792657660-596af9009e82?w=200&h=200&fit=crop"
+            image={HERO_IMAGES.PLAYER1}
             onClick={() => onTargetClick(null, true, 'player1')}
           />
           <HeroPowerBadge

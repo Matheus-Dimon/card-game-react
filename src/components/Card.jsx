@@ -146,11 +146,11 @@ export default function Card({ card, isField = false, onClick, className = '', s
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
       {showTooltip && <CardTooltip card={card} />}
-      <div className="card-frame">
+      <div className="card-frame" style={{backgroundImage: card.type.backgroundImage ? `url(${card.type.backgroundImage})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center'}}>
         <img
           src={card.image}
-          alt={card.name} 
-          onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=300&fit=crop&q=80')} 
+          alt={card.name}
+          onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=300&fit=crop&q=80')}
         />
         <div className="card-mana">{card.mana}</div>
         <div className="card-type">{card.type.name.charAt(0)}</div>
