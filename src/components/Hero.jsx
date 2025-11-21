@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 
 export default function Hero({
   name = 'Hero',
@@ -15,7 +16,7 @@ export default function Hero({
   const crystals = Array.from({ length: Math.min(mana, 10) })
 
   return (
-    <div
+    <motion.div
       data-hero={heroKey}
       className={`hero ${isTargetable ? 'targetable' : ''}`}
       onClick={onClick}
@@ -42,6 +43,6 @@ export default function Hero({
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

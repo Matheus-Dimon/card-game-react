@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import CardTooltip from './CardTooltip'
 
 export default function Card({ card, isField = false, onClick, className = '', selected = false, isTargetable = false, playable = false }) {
@@ -31,12 +32,18 @@ export default function Card({ card, isField = false, onClick, className = '', s
   }
   
   return (
-    <div
+    <motion.div
       data-card-id={card.id}
       onClick={() => onClick && onClick(card)}
       className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${!card.canAttack && isField ? 'card-tired' : ''} ${playable ? 'playable' : 'not-playable'}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 1.1 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
       {showTooltip && <CardTooltip card={card} />}
       <div className="card-frame">
@@ -91,6 +98,6 @@ export default function Card({ card, isField = false, onClick, className = '', s
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

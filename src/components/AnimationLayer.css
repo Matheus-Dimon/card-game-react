@@ -1,0 +1,107 @@
+/* Animation Layer Styles */
+
+/* Damage numbers */
+.animation-damage {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff4444;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: transform 0.8s ease-out, opacity 0.8s ease-out;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.animation-heal {
+  font-size: 24px;
+  font-weight: bold;
+  color: #44ff44;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: transform 0.8s ease-out, opacity 0.8s ease-out;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Projectile base style */
+.animation-projectile {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+
+/* Projectile animation keyframes */
+@keyframes projectile-move {
+  from {
+    transform: translate(-50%, -50%);
+  }
+  to {
+    transform: translate(calc(-50% + var(--target-x)), calc(-50% + var(--target-y)));
+  }
+}
+
+/* Stone projectile */
+.animation-projectile.stone {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%238B4513"/><path d="M8 8l8 8m0-8l-8 8" stroke="%23000" stroke-width="2"/></svg>') no-repeat center;
+}
+
+/* Arrow projectile */
+.animation-projectile.arrow {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2v20m-5-5l5 5 5-5" stroke="%23FFA500" stroke-width="3" fill="none"/></svg>') no-repeat center;
+  animation: projectile-move var(--duration) ease-in-out, arrow-rotate var(--duration) linear;
+}
+
+@keyframes arrow-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(calc(-50% + var(--target-x)), calc(-50% + var(--target-y))) rotate(calc(atan2(var(--target-y), var(--target-x)) * 180 / 3.14159deg)); }
+}
+
+/* Spark projectile */
+.animation-projectile.spark {
+  background: radial-gradient(circle, #ffff00, #ffaa00, #ff5500);
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ffaa00, 0 0 20px #ffff00;
+  animation: projectile-move var(--duration) ease-in-out, spark-flicker 200ms infinite alternate;
+}
+
+@keyframes spark-flicker {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
+
+/* Fireball projectile */
+.animation-projectile.fireball {
+  background: radial-gradient(circle, #ff0000, #ffaa00, #ffff00);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #ff0000, 0 0 30px #ffaa00, inset 0 0 10px #ffff00;
+  animation: projectile-move var(--duration) ease-in-out, fireball-pulse 300ms infinite alternate;
+}
+
+@keyframes fireball-pulse {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Heal glow projectile */
+.animation-projectile.healglow {
+  background: radial-gradient(circle, #00ff00, #88ff88, #ccffcc);
+  border-radius: 50%;
+  box-shadow: 0 0 15px #00ff00, 0 0 30px #88ff88;
+  animation: projectile-move var(--duration) ease-in-out, heal-pulse 300ms infinite alternate;
+}
+
+@keyframes heal-pulse {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; }
+}
+
+/* Default projectile */
+.animation-projectile.default {
+  background: radial-gradient(circle, #ffffff, #cccccc);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}

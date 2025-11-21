@@ -574,6 +574,15 @@ function reducer(state=initialState, action){
 
     case 'INITIATE_HEAL_TARGETING': {
       const { healerId, healAmount } = action.payload
+      // Start charging animation for healer (similar to attack)
+      const healerEl = document.querySelector(`[data-card-id="${healerId}"]`)
+      if (healerEl) {
+        const originalTransform = healerEl.style.transform
+        healerEl.style.transform = originalTransform + ' translateY(-20px) scale(1.1)'
+        setTimeout(() => {
+          healerEl.style.transform = originalTransform
+        }, 400)
+      }
       return {
         ...state,
         targeting: {
@@ -611,6 +620,8 @@ function reducer(state=initialState, action){
           })
         })
       }
+
+
 
       return {
         ...state,
@@ -803,7 +814,7 @@ export function GameProvider({children}){
       let mana = stateRef.current.player2.mana
       const aiPlayer = state.player2
 
-      // Smart card priority: high score first
+      // Smart card priority: high score first, favor low cost in early turns
       const playable = state.player2.hand.filter(c => {
         let cost = c.mana
         if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
@@ -820,8 +831,12 @@ export function GameProvider({children}){
         if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
         cost = Math.max(1, cost)
 
-        // Score: efficiency + effects
-        const score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
+        // Score: efficiency + effects, with early game cost favorability
+        let score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
+        // Favor low cost in early turns: bonus for low cost, penalty for high cost relative to turn
+        const turnModifier = Math.max(0, 6 - state.turnCount) // Early turns (1-6) get favor, later turns less
+        score += (turnModifier * (6 - cost)) / 10 // Low cost bonus in early turns
+        if (state.turnCount <= 4 && cost > 3) score -= (cost - 3) * 0.5 // Penalize high cost early
         return {...card, aiScore: score, effectiveCost: cost}
       }).sort((a,b) => b.aiScore - a.aiScore)
 

@@ -6,7 +6,7 @@ export default function HeroPowerBadge({ powers = [], onClick, disabledProps = {
 
   if (!powers || powers.length === 0) return null
 
-  const { disabled = false, mana = 0 } = disabledProps
+  const { disabled = false, mana = 0, hasUsedHeroPower = false } = disabledProps
 
   return (
     <div className="hero-powers-container">

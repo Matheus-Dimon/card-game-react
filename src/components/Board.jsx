@@ -2,11 +2,11 @@ import React, { useContext } from 'react'
 import Hero from './Hero'
 import BattlefieldLane from './BattlefieldLane'
 import Hand from './Hand'
-import AnimationLayer from './AnimationLayer'
 import { GameContext } from '../context/GameContext.jsx'
 import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
 import InstructionsPanel from './InstructionsPanel.jsx'
+import AnimationLayer from './AnimationLayer.jsx'
 
 // Sistema de sons MELHORADO
 const playSound = (type) => {
@@ -190,13 +190,45 @@ export default function Board() {
       if (targetHeroKey !== 'player1' && !target) return
       if (target && !isCardOwner(target.id, 'player1')) return
 
-      dispatch({
-        type: 'APPLY_HEAL_WITH_TARGET',
-        payload: {
-          targetCardId: isHero ? null : (target ? target.id : null),
-          targetIsHero: isHero
+      // Initiate heal animation
+      const healer = [...player1.field.melee, ...player1.field.ranged].find(c => c.id === state.targeting.healerId)
+      if (healer) {
+        const healerEl = document.querySelector(`[data-card-id="${healer.id}"]`)
+        const targetEl = isHero
+          ? document.querySelector(`[data-hero="${player1.hero ? 'player1' : 'player1'}"]`)
+          : (target ? document.querySelector(`[data-card-id="${target.id}"]`) : null)
+
+        if (healerEl && targetEl) {
+          const healerRect = healerEl.getBoundingClientRect()
+          const targetRect = targetEl.getBoundingClientRect()
+
+          dispatch({
+            type: 'INITIATE_ANIMATION',
+            payload: {
+              startRect: healerRect,
+              endRect: targetRect,
+              duration: 1000,
+              damage: -state.targeting.healAmount, // negative for heal
+              projectile: 'healglow',
+              callbackAction: {
+                type: 'APPLY_HEAL_WITH_TARGET',
+                payload: {
+                  targetCardId: isHero ? null : (target ? target.id : null),
+                  targetIsHero: isHero
+                }
+              }
+            }
+          })
+        } else {
+          dispatch({
+            type: 'APPLY_HEAL_WITH_TARGET',
+            payload: {
+              targetCardId: isHero ? null : (target ? target.id : null),
+              targetIsHero: isHero
+            }
+          })
         }
-      })
+      }
       return
     }
 
@@ -284,7 +316,7 @@ export default function Board() {
     let animationPayload = {
       startRect,
       endRect,
-      duration: isMelee ? 800 : 700,
+      duration: isMelee ? 1000 : 800, // Increased duration for drama
       damage: damageVal,
       callbackAction: {
         type: 'APPLY_ATTACK_DAMAGE',
@@ -299,12 +331,13 @@ export default function Board() {
     }
 
     if (isMelee) {
-      // For melee, lift the card first, then animate movement
+      // For melee, lift the card higher first, then animate dramatic movement
       const originalTransform = attackerEl.style.transform
-      attackerEl.style.transform = originalTransform + ' translateY(-20px)'
+      attackerEl.style.transform = originalTransform + ' translateY(-40px) scale(1.1)' // Lift higher and scale a bit
       animationPayload.isMelee = true
       animationPayload.cardImage = attacker.type.image
       animationPayload.targetEl = targetEl
+      animationPayload.drama = true // Flag for more dramatic animation
       setTimeout(() => {
         attackerEl.style.transform = originalTransform
         dispatch({
@@ -312,7 +345,7 @@ export default function Board() {
           payload: animationPayload
         })
         dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
-      }, 300)
+      }, 400) // Longer delay
     } else {
       // For ranged, use projectile
       let projectile = 'stone'
@@ -341,14 +374,59 @@ export default function Board() {
     }
 
     playSound('heroPower')
-    dispatch({
-      type: 'APPLY_HERO_POWER_WITH_TARGET',
-      payload: {
-        playerKey: playerUsing,
-        power,
-        targetCardId: isHero ? null : (target ? target.id : null),
-        targetIsHero: isHero
+    processHeroPower(power, playerUsing, target, isHero, targetHeroKey)
+  }
+
+  const processHeroPower = (power, playerUsing, target, isHero, targetHeroKey) => {
+    const heroEl = document.querySelector(`[data-hero="${playerUsing}"]`)
+    const damageVal = power.amount || 1
+    const targetEl = isHero
+      ? document.querySelector(`[data-hero="${targetHeroKey}"]`)
+      : (target ? document.querySelector(`[data-card-id="${target.id}"]`) : null)
+
+    if (!heroEl || (!targetEl && !isHero)) {
+      dispatch({
+        type: 'APPLY_HERO_POWER_WITH_TARGET',
+        payload: {
+          playerKey: playerUsing,
+          power,
+          targetCardId: isHero ? null : (target ? target.id : null),
+          targetIsHero: isHero
+        }
+      })
+      return
+    }
+
+    const startRect = heroEl.getBoundingClientRect()
+    const endRect = isHero
+      ? document.querySelector(`[data-hero="${targetHeroKey}"]`).getBoundingClientRect()
+      : targetEl.getBoundingClientRect()
+
+    // Determine projectile based on power effect
+    let projectile = 'spark' // default glowy effect
+    if (power.effect === 'damage') projectile = 'fireball'  // red/fire
+    if (power.effect === 'heal_target') projectile = 'healglow'  // green healing
+
+    const animationPayload = {
+      startRect,
+      endRect,
+      duration: 800, // Smooth like Hearthstone
+      damage: power.effect === 'damage' ? damageVal : null,
+      projectile,
+      callbackAction: {
+        type: 'APPLY_HERO_POWER_WITH_TARGET',
+        payload: {
+          playerKey: playerUsing,
+          power,
+          targetCardId: isHero ? null : (target ? target.id : null),
+          targetIsHero: isHero
+        }
       }
+    }
+
+    dispatch({
+      type: 'INITIATE_ANIMATION',
+      payload: animationPayload
     })
   }
 
@@ -466,7 +544,7 @@ export default function Board() {
           <HeroPowerBadge
             powers={player1.heroPowers}
             onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})}
-            disabledProps={{ mana: player1.mana }}
+            disabledProps={{ mana: player1.mana, hasUsedHeroPower: player1.hasUsedHeroPower }}
           />
         </div>
       </div>
