@@ -112,17 +112,17 @@ export const CARD_EFFECTS = {
 export const CARD_OPTIONS = {
   P1: [
     // Básicas (custo 1-2)
-    { id: 'p1_001', name: 'Escudeiro', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 2, defense: 4, image: CARD_IMAGE_URLS.WARRIOR, effects: [], rarity: 'Common' },
-    { id: 'p1_002', name: 'Arqueiro Novato', type: UNIT_TYPES.ARCHER, mana: 1, attack: 3, defense: 2, image: CARD_IMAGE_URLS.ARCHER, effects: [], rarity: 'Common' },
-    { id: 'p1_003', name: 'Acólito', type: UNIT_TYPES.CLERIC, mana: 1, attack: 0, defense: 3, healValue: 3, image: CARD_IMAGE_URLS.CLERIC, effects: [], rarity: 'Common' },
-    { id: 'p1_004', name: 'Lanceiro', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [], rarity: 'Common' },
-    { id: 'p1_005', name: 'Besteiro', type: UNIT_TYPES.ARCHER, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.ARCHER_2, effects: [], rarity: 'Common' },
+    { id: 'p1_001', name: 'Escudeiro', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 2, defense: 4, image: CARD_IMAGE_URLS.WARRIOR, effects: [CARD_EFFECTS.TAUNT], rarity: 'Common' },
+    { id: 'p1_002', name: 'Arqueiro Novato', type: UNIT_TYPES.ARCHER, mana: 1, attack: 3, defense: 2, image: CARD_IMAGE_URLS.ARCHER, effects: [CARD_EFFECTS.BATTLECRY_DAMAGE_ALL], rarity: 'Common' },
+    { id: 'p1_003', name: 'Acólito', type: UNIT_TYPES.CLERIC, mana: 1, attack: 0, defense: 3, healValue: 3, image: CARD_IMAGE_URLS.CLERIC, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET], rarity: 'Common' },
+    { id: 'p1_004', name: 'Lanceiro', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [CARD_EFFECTS.CHARGE], rarity: 'Common' },
+    { id: 'p1_005', name: 'Besteiro', type: UNIT_TYPES.ARCHER, mana: 2, attack: 4, defense: 3, image: CARD_IMAGE_URLS.ARCHER_2, effects: [CARD_EFFECTS.LIFESTEAL], rarity: 'Common' },
 
     // Intermediárias (custo 3-4) com efeitos
     { id: 'p1_006', name: 'Cavaleiro', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 4, defense: 5, image: CARD_IMAGE_URLS.WARRIOR_3, effects: [CARD_EFFECTS.CHARGE], rarity: 'Common' },
     { id: 'p1_007', name: 'Guardião', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 3, defense: 6, image: CARD_IMAGE_URLS.WARRIOR, effects: [CARD_EFFECTS.TAUNT], rarity: 'Common' },
     { id: 'p1_008', name: 'Atirador Elite', type: UNIT_TYPES.ARCHER, mana: 3, attack: 5, defense: 3, image: CARD_IMAGE_URLS.ARCHER_3, effects: [CARD_EFFECTS.BATTLECRY_DAMAGE_ALL], rarity: 'Common' },
-    { id: 'p1_009', name: 'Curandeiro', type: UNIT_TYPES.CLERIC, mana: 3, attack: 0, defense: 5, healValue: 4, image: CARD_IMAGE_URLS.CLERIC_2, effects: [], rarity: 'Common' },
+    { id: 'p1_009', name: 'Curandeiro', type: UNIT_TYPES.CLERIC, mana: 3, attack: 0, defense: 5, healValue: 4, image: CARD_IMAGE_URLS.CLERIC_2, effects: [CARD_EFFECTS.BATTLECRY_DRAW], rarity: 'Common' },
     { id: 'p1_010', name: 'Paladino', type: UNIT_TYPES.WARRIOR, mana: 4, attack: 5, defense: 6, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [CARD_EFFECTS.SHIELD_FIRST_TURN], rarity: 'Common' },
     { id: 'p1_011', name: 'Caçador', type: UNIT_TYPES.ARCHER, mana: 4, attack: 6, defense: 4, image: CARD_IMAGE_URLS.ARCHER, effects: [CARD_EFFECTS.LIFESTEAL], rarity: 'Common' },
     { id: 'p1_012', name: 'Sacerdote', type: UNIT_TYPES.CLERIC, mana: 4, attack: 0, defense: 6, healValue: 5, image: CARD_IMAGE_URLS.CLERIC_3, effects: [CARD_EFFECTS.BATTLECRY_DRAW], rarity: 'Common' },
@@ -133,7 +133,7 @@ export const CARD_OPTIONS = {
     { id: 'p1_015', name: 'Bispo', type: UNIT_TYPES.CLERIC, mana: 5, attack: 0, defense: 6, healValue: 4, image: CARD_IMAGE_URLS.CLERIC, effects: [CARD_EFFECTS.TAUNT], rarity: 'Rare' },
     { id: 'p1_016', name: 'Campeão', type: UNIT_TYPES.WARRIOR, mana: 6, attack: 6, defense: 6, image: CARD_IMAGE_URLS.WARRIOR, effects: [CARD_EFFECTS.CHARGE], rarity: 'Rare' },
     { id: 'p1_017', name: 'Arquimago', type: UNIT_TYPES.ARCHER, mana: 6, attack: 7, defense: 5, image: CARD_IMAGE_URLS.ARCHER_3, effects: [CARD_EFFECTS.SHIELD_FIRST_TURN], rarity: 'Rare' },
-    { id: 'p1_018', name: 'Sumo Sacerdote', type: UNIT_TYPES.CLERIC, mana: 6, attack: 0, defense: 7, healValue: 5, image: CARD_IMAGE_URLS.CLERIC_2, effects: [], rarity: 'Rare' },
+    { id: 'p1_018', name: 'Sumo Sacerdote', type: UNIT_TYPES.CLERIC, mana: 6, attack: 0, defense: 7, healValue: 5, image: CARD_IMAGE_URLS.CLERIC_2, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET], rarity: 'Rare' },
 
     // Épicas (custo 7-8)
     { id: 'p1_019', name: 'General', type: UNIT_TYPES.WARRIOR, mana: 7, attack: 7, defense: 7, image: CARD_IMAGE_URLS.WARRIOR_2, effects: [CARD_EFFECTS.TAUNT, CARD_EFFECTS.BATTLECRY_BUFF_ALLIES], rarity: 'Epic' },
@@ -153,11 +153,11 @@ export const CARD_OPTIONS = {
   ],
   P2: [
     // Mesmo esquema para o P2, mas com tema dark/evil
-    { id: 'p2_001', name: 'Esqueleto', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 1, defense: 2, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [] },
-    { id: 'p2_002', name: 'Lançador Dardo', type: UNIT_TYPES.ARCHER, mana: 1, attack: 2, defense: 1, image: CARD_IMAGE_URLS.DARK_MAGE, effects: [] },
+    { id: 'p2_001', name: 'Esqueleto', type: UNIT_TYPES.WARRIOR, mana: 1, attack: 1, defense: 2, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [CARD_EFFECTS.TAUNT] },
+    { id: 'p2_002', name: 'Lançador Dardo', type: UNIT_TYPES.ARCHER, mana: 1, attack: 2, defense: 1, image: CARD_IMAGE_URLS.DARK_MAGE, effects: [CARD_EFFECTS.BATTLECRY_DAMAGE_ALL] },
     { id: 'p2_003', name: 'Vampiro', type: UNIT_TYPES.CLERIC, mana: 1, attack: 0, defense: 2, healValue: 2, image: CARD_IMAGE_URLS.CLERIC, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },
-    { id: 'p2_004', name: 'Zumbi', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 2, defense: 3, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [] },
-    { id: 'p2_005', name: 'Aranha Gigante', type: UNIT_TYPES.ARCHER, mana: 2, attack: 3, defense: 2, image: CARD_IMAGE_URLS.BEAST, effects: [] },
+    { id: 'p2_004', name: 'Zumbi', type: UNIT_TYPES.WARRIOR, mana: 2, attack: 2, defense: 3, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [CARD_EFFECTS.CHARGE] },
+    { id: 'p2_005', name: 'Aranha Gigante', type: UNIT_TYPES.ARCHER, mana: 2, attack: 3, defense: 2, image: CARD_IMAGE_URLS.BEAST, effects: [CARD_EFFECTS.LIFESTEAL] },
     { id: 'p2_006', name: 'Orc Guerreiro', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 3, defense: 4, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [CARD_EFFECTS.CHARGE] },
     { id: 'p2_007', name: 'Golem', type: UNIT_TYPES.WARRIOR, mana: 3, attack: 2, defense: 5, image: CARD_IMAGE_URLS.DARK_WARRIOR, effects: [CARD_EFFECTS.TAUNT] },
     { id: 'p2_008', name: 'Necromante', type: UNIT_TYPES.CLERIC, mana: 3, attack: 0, defense: 4, healValue: 3, image: CARD_IMAGE_URLS.DARK_MAGE, effects: [CARD_EFFECTS.BATTLECRY_HEAL_TARGET] },

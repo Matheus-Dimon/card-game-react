@@ -68,41 +68,47 @@ function selectAIPassives() {
 
 function selectAIDeck() {
   const pool = CARD_OPTIONS.P2
-  const selected = {}
-  // Priorize cartas com efeitos, stats altos, e MUITO mais importante, CUSTO BAIXO
-  const scored = pool.map(card => ({
-    ...card,
-    // NOVA HEURÍSTICA DE SCORE:
-    score: (card.attack || 0) + (card.defense || 0) +
-           ((card.effects?.length || 0) * 5) +
-           (card.mana < 3 ? 15 : 0) - // GRANDE BÔNUS para cartas de custo 1 ou 2
-           (card.mana * 5) + // AUMENTAR a penalidade para cartas de alto custo
-           Math.random() * 3
-  })).sort((a,b) => b.score - a.score)
+  let selectedCards = []
 
-  // O restante da lógica para montar o deck e preencher o tamanho de 15 é mantida...
-  scored.forEach(card => {
-    const count = selected[card.id] || 0
-    const maxAllowed = card.rarity === 'Legendary' ? 999 : 3
-    // Lembre-se: o limite de cópias para non-Legendary é 3, Legendaries são ilimitadas
-    if (count < maxAllowed) {
-      selected[card.id] = count + 1
+  // Group cards by mana cost
+  const cardsByMana = {}
+  pool.forEach(card => {
+    if (!cardsByMana[card.mana]) {
+      cardsByMana[card.mana] = []
+    }
+    cardsByMana[card.mana].push(card)
+  })
+
+  // For each mana cost, select 3 cards (or all if less than 3 available)
+  Object.keys(cardsByMana).forEach(manaCost => {
+    const cards = cardsByMana[manaCost]
+
+    // Score cards: prioritize effects, stats, low cost
+    const scoredCards = cards.map(card => ({
+      ...card,
+      score: (card.attack || 0) + (card.defense || 0) +
+             ((card.effects?.length || 0) * 5) +
+             (card.mana < 3 ? 15 : 0) -
+             (card.mana * 5) +
+             Math.random() * 3
+    })).sort((a, b) => b.score - a.score)
+
+    // Select top 3 (or all available if less than 3)
+    const selectedCount = Math.min(3, scoredCards.length)
+    for (let i = 0; i < selectedCount; i++) {
+      selectedCards.push(scoredCards[i].id)
     }
   })
 
-  let cards = []
-  Object.entries(selected).forEach(([id, count]) => {
-    for (let i = 0; i < count; i++) {
-      cards.push(id)
-    }
-  })
-
-  while (cards.length < 15) {
+  // If we don't have exactly 15 cards, fill with random cards
+  while (selectedCards.length < 15) {
     const randomCard = pool[Math.floor(Math.random() * pool.length)]
-    cards.push(randomCard.id)
+    if (!selectedCards.includes(randomCard.id)) {
+      selectedCards.push(randomCard.id)
+    }
   }
 
-  return cards.slice(0, 15)
+  return selectedCards.slice(0, 15)
 }
 
 function selectAIPowers() {
