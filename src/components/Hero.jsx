@@ -12,9 +12,6 @@ export default function Hero({
   heroKey = 'player'
 }) {
 
-  // Gera os cristais de mana (máximo 10)
-  const crystals = Array.from({ length: Math.min(mana, 10) })
-
   return (
     <motion.div
       data-hero={heroKey}
@@ -38,9 +35,10 @@ export default function Hero({
         </div>
 
         <div className="hero-resources" aria-hidden>
-          {crystals.map((_, i) => (
-            <div key={i} className="hero-crystal" />
-          ))}
+          <div className="hero-mana-container">
+            <div className="hero-crystal" />
+            <div className="hero-mana-counter">{mana}</div>
+          </div>
         </div>
       </div>
     </motion.div>
