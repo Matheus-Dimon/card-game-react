@@ -1239,14 +1239,57 @@ body{
 }
 
 .start-menu-button {
-  padding: 20px 40px;
-  font-size: 2em;
+  padding: 25px 50px;
+  font-size: 2.5em;
   cursor: pointer;
   background-color: black;
   color: white;
   border: none;
   border-radius: 5px;
   box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+.start-menu-button:hover {
+  animation: pulse-button 1s infinite;
+}
+
+@keyframes pulse-button {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    transform: scale(1);
+  }
+}
+
+/* Music Toggle Button */
+.music-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  font-size: 30px;
+  padding: 15px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.music-toggle:hover {
+  background: rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+  transform: scale(1.1);
 }
 
 .card.playable {

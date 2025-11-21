@@ -12,9 +12,29 @@ import { HERO_IMAGES } from '../utils/constants.js'
 // Sistema de sons MELHORADO
 const playSound = (type) => {
   try {
-    const ctx = new AudioContext()
     const sounds = {
       cardPlay: () => {
+        const audio = new Audio('/src/SoundEffects/cardPlay.mp3') // assuming background.mp3 is music, need card play sound
+        audio.volume = 0.6
+        audio.play().catch(err => console.log('Audio play error:', err))
+      },
+      warrior_attack: () => {
+        const audio = new Audio('/src/SoundEffects/guerreiros.wav')
+        audio.volume = 0.8
+        audio.play().catch(err => console.log('Audio play error:', err))
+      },
+      archer_attack: () => {
+        const audio = new Audio('/src/SoundEffects/arqueiros.wav')
+        audio.volume = 0.8
+        audio.play().catch(err => console.log('Audio play error:', err))
+      },
+      cleric_attack: () => {
+        const audio = new Audio('/src/SoundEffects/clerigos.wav')
+        audio.volume = 0.8
+        audio.play().catch(err => console.log('Audio play error:', err))
+      },
+      cardPlay: () => {
+        const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
@@ -370,12 +390,20 @@ export default function Board() {
       return
     }
 
-    // Toca som apropriado baseado no tipo de ataque
-    if (attacker.type.lane === 'melee') {
-      const isCritical = attacker.attack >= 7 // Threshold for critical attack
-      playSound(isCritical ? 'sword_critical' : 'sword_normal')
-    } else {
-      playSound('arrow')
+    // Toca som apropriado baseado no tipo do carta
+    switch (attacker.type.name.toLowerCase()) {
+      case 'guerreiro':
+        playSound('warrior_attack')
+        break
+      case 'arqueiro':
+        playSound('archer_attack')
+        break
+      case 'clérigo':
+        playSound('cleric_attack')
+        break
+      default:
+        playSound('sword_normal')
+        break
     }
 
     processAttack(attacker, target, isHero, targetHeroKey)

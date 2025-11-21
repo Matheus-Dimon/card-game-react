@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { GameContext } from '../context/GameContext';
+import BackgroundMusic from '../components/BackgroundMusic';
 import '../styles/styles.css';
 
 const StartMenu = () => {
@@ -11,8 +12,8 @@ const StartMenu = () => {
 
   return (
     <div className="start-menu-container">
+      <BackgroundMusic />
       <div className="start-menu">
-        <h1 className="start-menu-title">NEVER LUCKY</h1>
         <button className="start-menu-button" onClick={handleStartClick}>
           Start Game
         </button>
