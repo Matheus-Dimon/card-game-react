@@ -1,7 +1,6 @@
-import React, { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { useState } from 'react';
 import { Text } from '@react-three/drei';
-import { useSpring, animated } from '@react-spring/three';
+import { motion } from 'framer-motion-3d';
 import * as THREE from 'three';
 
 const ClericCard = ({
@@ -11,121 +10,88 @@ const ClericCard = ({
   isAttacking = false,
   onAttackComplete = () => {},
   isHealing = false,
-  onHealComplete = () => {}
+  onHealComplete = () => {},
+  isHealingOther = false,
+  healTargetPosition,
+  onHealOtherComplete = () => {}
 }) => {
-  const meshRef = useRef();
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Load textures (placeholder URLs, replace with actual)
-  const frontTexture = useMemo(() => new THREE.TextureLoader().load(card.image || 'https://via.placeholder.com/300x450'), [card.image]);
-  const backTexture = useMemo(() => new THREE.TextureLoader().load('https://via.placeholder.com/300x450/000000/FFFFFF?text=Back'), []);
+  // Load textures
+  const frontTexture = React.useMemo(() => new THREE.TextureLoader().load(card.image || 'https://via.placeholder.com/300x450'), [card.image]);
+  const backTexture = React.useMemo(() => new THREE.TextureLoader().load('https://via.placeholder.com/300x450/000000/FFFFFF?text=Back'), []);
 
-  // Idle bob animation for Cleric
-  const [idleSpring, idleApi] = useSpring(() => ({
-    positionY: position[1],
-    emissive: 0.1,
-    loop: true,
-    config: { tension: 180, friction: 12 },
-  }));
+  // Variants for animations
+  const cardVariants = {
+    idle: { y: 0, scale: 1 },
+    idleCleric: { y: [0, 0.2, 0], scale: 1, transition: { duration: 2, repeat: Infinity } },
+    attackWindup: { x: -0.5, scale: [1, 0.9, 1.1], transition: { type: 'spring', stiffness: 500 } },
+    attackThrust: { x: targetPosition ? (targetPosition[0] - position[0] - 0.1) : 0, scale: [1.1, 1.2, 0.9], transition: { type: 'spring', stiffness: 800, damping: 15 } },
+    attackImpact: { x: targetPosition ? (targetPosition[0] - position[0] - 0.1) : 0, scale: [0.9, 1.3, 0.8], transition: { type: 'spring', stiffness: 700, damping: 5 } },
+    attackRecoil: { x: 0, scale: 1, transition: { type: 'spring', stiffness: 300 } },
+  };
 
-  React.useEffect(() => {
-    if (card.type === 'Cleric') {
-      idleApi.start({
-        from: { positionY: position[1], emissive: 0.1 },
-        to: [
-          { positionY: position[1] + 0.2, emissive: 0.2 },
-          { positionY: position[1], emissive: 0.1 },
-        ],
-        loop: { reverse: true }
-      });
-    }
-  }, [card.type, position[1], idleApi]);
+  const healVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: { scale: [0, 3, 5, 1], opacity: [0, 1, 0.5, 0], transition: { duration: 2 } },
+  };
 
-  // Melee attack animation: Wind-up, Thrust, Impact, Recoil
-  const [attackSpring, attackApi] = useSpring(() => ({
-    positionX: position[0],
-    scale: [1, 1, 1],
-    emissive: card.type === 'Cleric' ? 0.1 : 0,
-    config: { tension: 300, friction: 20 },
-  }));
+  const castVariants = {
+    hidden: { scale: 0, opacity: 0, x: 0 },
+    visible: { 
+      scale: [0, 1.5, 3, 0], 
+      opacity: [0, 0.8, 1, 0], 
+      x: healTargetPosition ? (healTargetPosition[0] - position[0]) : 0, 
+      transition: { duration: 1.5, ease: 'easeOut' } 
+    },
+  };
 
-  React.useEffect(() => {
-    if (isAttacking && targetPosition) {
-      const originalX = position[0];
-      const targetX = targetPosition[0];
+  const currentState = React.useMemo(() => {
+    if (card.type === 'Cleric') return 'idleCleric';
+    return 'idle';
+  }, [card.type]);
 
-      attackApi.start({
-        // Wind-up: slight pullback using backIn
-        to: { positionX: originalX - 0.5, scale: [0.9, 1.1, 1], emissive: 0.3 },
-        delay: 0,
-        config: { tension: 400, friction: 20 },
-      }).then(() => {
-        // Thrust: rapid movement
-        return attackApi.start({
-          to: { positionX: targetX - 0.1, scale: [1.2, 0.9, 1.1], emissive: 0.5 },
-          config: { tension: 600, friction: 15 },
-        });
-      }).then(() => {
-        // Impact: stiff compression
-        return attackApi.start({
-          to: { scale: [1.3, 0.8, 1.2], emissive: 0.7 },
-          config: { frequency: 0.3, damping: 0.9 }, // elasticOut
-        });
-      }).then(() => {
-        // Recoil: bounce back
-        return attackApi.start({
-          to: { positionX: originalX, scale: [1, 1, 1], emissive: card.type === 'Cleric' ? 0.1 : 0 },
-          config: { tension: 300, friction: 25 },
-        });
-      }).then(() => {
-        onAttackComplete();
-      });
-    }
-  }, [isAttacking, targetPosition, position[0], attackApi, onAttackComplete, card.type]);
+  const animateAttack = async () => {
+    if (!isAttacking || !targetPosition) return;
 
-  // Heal animation for Cleric
-  const [healSpring, healApi] = useSpring(() => ({
-    auraScale: 1,
-    auraOpacity: 0,
-    config: { tension: 200, friction: 12 },
-  }));
+    setIsAnimating(true);
+    // Wind-up
+    // Thrust
+    await new Promise(res => setTimeout(res, 300));
+    // Assume onAttackComplete is called after animation
+    setIsAnimating(false);
+    onAttackComplete();
+  };
 
   React.useEffect(() => {
-    if (isHealing && card.type === 'Cleric') {
-      healApi.start({
-        from: { auraScale: 1, auraOpacity: 0 },
-        to: [
-          { auraScale: 3, auraOpacity: 1 },
-          { auraScale: 5, auraOpacity: 0.5 },
-          { auraScale: 1, auraOpacity: 0 },
-        ],
-      }).then(() => {
-        onHealComplete();
-      });
-    }
-  }, [isHealing, card.type, healApi, onHealComplete]);
+    animateAttack();
+  }, [isAttacking, targetPosition]);
 
-  // Update idle position Y
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.position.y = idleSpring.positionY.get();
+  React.useEffect(() => {
+    if (isHealing) {
+      setTimeout(onHealComplete, 2000);
     }
-  });
+  }, [isHealing, onHealComplete]);
+
+  React.useEffect(() => {
+    if (isHealingOther) {
+      setTimeout(onHealOtherComplete, 1500);
+    }
+  }, [isHealingOther, onHealOtherComplete]);
 
   return (
     <>
-      <animated.group
-        position={[attackSpring.positionX.get(), position[1], position[2]]}
-        scale={attackSpring.scale}
+      <motion.group
+        position={position}
+        initial="idle"
+        animate={isAnimating ? "attackRecoil" : currentState}
+        variants={cardVariants}
       >
-        <animated.mesh ref={meshRef} emissive={[attackSpring.emissive.get(), attackSpring.emissive.get() * 0.8, 0]}>
+        <motion.mesh>
           {/* Front card */}
           <boxGeometry args={[3, 4.5, 0.05]} />
-          <animated.meshStandardMaterial
-            map={frontTexture}
-            emissive="#ffd700"
-            emissiveIntensity={attackSpring.emissive}
-          />
-        </animated.mesh>
+          <meshStandardMaterial map={frontTexture} emissive={isAnimating ? "#ffd700" : "#000"} emissiveIntensity={isAnimating ? 0.5 : 0} />
+        </motion.mesh>
 
         {/* Back side */}
         <mesh position={[0, 0, -0.06]}>
@@ -137,10 +103,10 @@ const ClericCard = ({
         {card.type === 'Cleric' && (
           <mesh position={[0, 0, 0.03]} castShadow>
             <ringGeometry args={[1.45, 1.55, 64]} />
-            <animated.meshStandardMaterial
+            <meshStandardMaterial
               color="#ffd700"
               emissive="#ffd700"
-              emissiveIntensity={idleSpring.emissive}
+              emissiveIntensity={0.3}
             />
           </mesh>
         )}
@@ -153,30 +119,47 @@ const ClericCard = ({
           🛡️ {card.defense || 0}
         </Text>
 
-        {/* Heal aura column */}
-        {card.type === 'Cleric' && (
-          <animated.mesh position={[0, 2, 0.07]} scale={[healSpring.auraScale, 3, healSpring.auraScale]}>
+        {/* Heal aura for self/other */}
+        {card.type === 'Cleric' && (isHealing || isHealingOther) && (
+          <motion.mesh
+            position={[0, 2, 0.07]}
+            initial="hidden"
+            animate="visible"
+            variants={healVariants}
+            whileInView="visible"
+          >
             <cylinderGeometry args={[1, 1, 4]} />
-            <animated.meshStandardMaterial
+            <motion.meshStandardMaterial
               color="#00ff00"
               transparent
-              opacity={healSpring.auraOpacity}
               emissive="#00ff00"
               emissiveIntensity={0.5}
             />
-          </animated.mesh>
+          </motion.mesh>
         )}
-      </animated.group>
+
+        {/* Cast beam for healing other cards */}
+        {card.type === 'Cleric' && isHealingOther && (
+          <motion.mesh
+            position={[0, 1, 0.1]}
+            initial="hidden"
+            animate="visible"
+            variants={castVariants}
+          >
+            <cylinderGeometry args={[0.1, 0.3, 2]} />
+            <motion.meshStandardMaterial
+              color="#a0ffa0"
+              transparent
+              emissive="#a0ffa0"
+              emissiveIntensity={0.8}
+            />
+          </motion.mesh>
+        )}
+      </motion.group>
 
       {/* Dynamic lighting during attack */}
-      {isAttacking && (
-        <pointLight
-          position={[attackSpring.positionX.get(), position[1] + 2, position[2] + 2]}
-          intensity={2}
-          color="#ffff00"
-          decay={2}
-          distance={10}
-        />
+      {isAnimating && (
+        <pointLight position={[position[0], position[1] + 2, position[2] + 2]} intensity={2} color="#ffff00" decay={2} distance={10} />
       )}
     </>
   );

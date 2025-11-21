@@ -170,27 +170,29 @@ export default function AnimationLayer({ animation, onComplete }) {
       }, 1200)
     }
 
-    // Create projectile element
-    const projectile = document.createElement('div')
-    projectile.className = `animation-projectile ${animation.projectile || 'default'}`
-    projectile.style.position = 'absolute'
-    projectile.style.left = `${animation.startRect.left + animation.startRect.width / 2}px`
-    projectile.style.top = `${animation.startRect.top + animation.startRect.height / 2}px`
-    projectile.style.zIndex = '1000'
-
-    // Calculate target position
+    // Calculate target position (used for projectiles and damage numbers)
     const targetX = animation.endRect.left + animation.endRect.width / 2
     const targetY = animation.endRect.top + animation.endRect.height / 2
 
-    // Set CSS custom properties for animation
-    projectile.style.setProperty('--target-x', `${targetX - (animation.startRect.left + animation.startRect.width / 2)}px`)
-    projectile.style.setProperty('--target-y', `${targetY - (animation.startRect.top + animation.startRect.height / 2)}px`)
-    projectile.style.setProperty('--duration', `${animation.duration || 1000}ms`)
+    // Create projectile element only if projectile is specified and not 'default' (for ranged/healing, not melee)
+    const projectile = (animation.projectile && animation.projectile !== 'default') ? document.createElement('div') : null
+    if (projectile) {
+      projectile.className = `animation-projectile ${animation.projectile}`
+      projectile.style.position = 'absolute'
+      projectile.style.left = `${animation.startRect.left + animation.startRect.width / 2}px`
+      projectile.style.top = `${animation.startRect.top + animation.startRect.height / 2}px`
+      projectile.style.zIndex = '1000'
 
-    document.body.appendChild(projectile)
+      // Set CSS custom properties for animation
+      projectile.style.setProperty('--target-x', `${targetX - (animation.startRect.left + animation.startRect.width / 2)}px`)
+      projectile.style.setProperty('--target-y', `${targetY - (animation.startRect.top + animation.startRect.height / 2)}px`)
+      projectile.style.setProperty('--duration', `${animation.duration || 1000}ms`)
 
-    // Start animation
-    projectile.style.animation = `projectile-move ${animation.duration || 1000}ms ease-in-out`
+      document.body.appendChild(projectile)
+
+      // Start animation
+      projectile.style.animation = `projectile-move ${animation.duration || 1000}ms ease-in-out`
+    }
 
     // Show damage/heal number
     if (animation.damage !== undefined && animation.damage !== null) {
@@ -220,7 +222,10 @@ export default function AnimationLayer({ animation, onComplete }) {
 
     // Add enhanced effects at projectile impact
     const impactTimeout = setTimeout(() => {
-      createParticleEffect(targetX, targetY)
+      // Only create particles for ranged attacks (when projectile is specified)
+      if (animation.projectile) {
+        createParticleEffect(targetX, targetY)
+      }
       createImpactEffect(targetX, targetY)
 
       // Enhanced effects for healing
@@ -233,7 +238,7 @@ export default function AnimationLayer({ animation, onComplete }) {
         createHeroPowerEffect(targetX, targetY, animation.heroPowerEffect)
       }
 
-      if (projectile.parentNode) {
+      if (projectile && projectile.parentNode) {
         projectile.parentNode.removeChild(projectile)
       }
 
@@ -245,7 +250,7 @@ export default function AnimationLayer({ animation, onComplete }) {
 
     return () => {
       clearTimeout(impactTimeout)
-      if (projectile.parentNode) {
+      if (projectile && projectile.parentNode) {
         projectile.parentNode.removeChild(projectile)
       }
     }

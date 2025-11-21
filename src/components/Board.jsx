@@ -388,8 +388,8 @@ export default function Board() {
         }
 
         // Calculate desired movement
-        let deltaX = (targetRect.left - attackerRect.left) * 0.4
-        let deltaY = (targetRect.top - attackerRect.top) * 0.4
+        let deltaX = (targetRect.left - attackerRect.left) * 0.8
+        let deltaY = (targetRect.top - attackerRect.top) * 0.8
 
         // Clamp movement to stay within board boundaries
         const newCardLeft = attackerRect.left + deltaX
@@ -615,7 +615,7 @@ export default function Board() {
         </div>
       </div>
 
-      <div className="board-divider" />
+      <div className="board-divider" />>
 
       <div className="board-section board-bottom">
         <div className="lanes-vertical">
@@ -661,7 +661,7 @@ export default function Board() {
 
       <div className="controls">
         <button className="btn" onClick={endTurn} disabled={turn !== 1}>
-          {turn === 1 ? 'End Turn' : 'Enemy Turn...'}
+          End Turn
         </button>
       </div>
 
