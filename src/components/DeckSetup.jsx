@@ -6,24 +6,20 @@ export default function DeckSetup() {
   const { state, dispatch } = useContext(GameContext)
   const pool = CARD_OPTIONS.P1
   const selected = state.selectedDeckCards || []
+  const maxAllowed = 3 // Max 3 copies per card
 
-  const toggle = (id) => {
+  const addCard = (id) => {
     const count = selected.filter(x => x === id).length
-    let newSelected
-    if (count > 0) {
-      // Remove one copy
-      newSelected = selected.slice()
-      const index = newSelected.lastIndexOf(id)
-      if (index !== -1) {
-        newSelected.splice(index, 1)
-      }
-    } else if (count < 3) {
-      // Add a copy, up to 3
-      newSelected = [...selected, id]
-    } else {
-      return // Can't add more than 3
-    }
+    if (count >= maxAllowed) return
+    const newSelected = [...selected, id]
+    dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelected })
+  }
 
+  const removeCard = (id) => {
+    const index = selected.lastIndexOf(id)
+    if (index === -1) return
+    const newSelected = [...selected]
+    newSelected.splice(index, 1)
     dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelected })
   }
 
@@ -63,12 +59,16 @@ export default function DeckSetup() {
 
       <div className="deck-grid">
         {pool.map(c => (
-          <div 
-            key={c.id} 
-            className={`deck-card ${selected.includes(c.id) ? 'selected' : ''} ${selected.length >= 15 && !selected.includes(c.id) ? 'disabled' : ''}`} 
+          <div
+            key={c.id}
+            className={`deck-card ${selected.includes(c.id) ? 'selected' : ''} ${selected.length >= 15 && !selected.includes(c.id) ? 'disabled' : ''}`}
             onClick={() => {
               if (selected.length >= 15 && !selected.includes(c.id)) return
-              toggle(c.id)
+              addCard(c.id)
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              removeCard(c.id)
             }}
           >
             <img src={c.image} alt={c.name} onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=300&fit=crop&q=80'} />
@@ -87,7 +87,7 @@ export default function DeckSetup() {
             </div>
             {(() => {
               const count = selected.filter(x => x === c.id).length
-              return count > 0 && <div className="selected-badge">{count}</div>
+              return <div className="selected-badge">{count}</div>
             })()}
           </div>
         ))}

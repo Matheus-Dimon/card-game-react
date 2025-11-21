@@ -82,8 +82,9 @@ function selectAIDeck() {
   // O restante da lógica para montar o deck e preencher o tamanho de 15 é mantida...
   scored.forEach(card => {
     const count = selected[card.id] || 0
-    // Lembre-se: o limite de cópias é definido em outro lugar, aqui é 3 por padrão
-    if (count < 3) {
+    const maxAllowed = card.rarity === 'Legendary' ? 999 : 3
+    // Lembre-se: o limite de cópias para non-Legendary é 3, Legendaries são ilimitadas
+    if (count < maxAllowed) {
       selected[card.id] = count + 1
     }
   })
