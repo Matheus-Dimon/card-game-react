@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, useEffect, useRef } from 'react'
 import { makeStartingDeck, makeStartingHeropower, shuffle, applyPassiveEffects, makeOrderedDeck } from '../utils/helpers.js'
-import { CARD_OPTIONS, HERO_POWER_OPTIONS, HERO_PASSIVE_OPTIONS, STARTING_HP, STARTING_MANA, CARD_EFFECTS } from '../utils/constants.js'
+import { CARD_OPTIONS, HERO_POWER_OPTIONS, HERO_PASSIVE_OPTIONS, STARTING_HP, STARTING_MANA, CARD_EFFECTS,STARTING_MANAP2 } from '../utils/constants.js'
 
 export const GameContext = createContext(null)
 const STARTING_DECK_SIZE = 15
@@ -20,8 +20,8 @@ const initialState = {
   },
   player2: {
     hp: STARTING_HP,
-    mana: STARTING_MANA,
-    maxMana: STARTING_MANA,
+    mana: STARTING_MANAP2,
+    maxMana: STARTING_MANAP2,
     hand: [],
     field: { melee: [], ranged: [] },
     deck: shuffle(makeStartingDeck(CARD_OPTIONS.P2, STARTING_DECK_SIZE)),

@@ -243,7 +243,7 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: false,
       effect: "damage_all_enemies",
-      amount: 3,
+      amount: 2,
       icon: "⚡",
       description: "Causa 3 de dano a todas unidades inimigas"
     },
@@ -326,7 +326,7 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: false,
       effect: "damage_all_enemies",
-      amount: 3,
+      amount: 2,
       icon: "⚡",
       description: "Causa 3 de dano a todas unidades inimigas"
     },
