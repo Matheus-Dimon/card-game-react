@@ -331,35 +331,48 @@ export default function Board() {
     }
 
     if (isMelee) {
-      // Melee attack anticipation: lean back, then lunge forward
+      // Enhanced melee attack anticipation with 2.5 collision physics
       const originalTransform = attackerEl.style.transform
       const originalScale = attackerEl.style.scale || 1
 
-      // Phase 1: Anticipation - lean back
+      // Phase 1: Anticipation - lean back with enhanced glow
       attackerEl.style.transform = originalTransform + ' translateY(-20px) rotateX(-10deg) scale(1.05)'
-      attackerEl.style.boxShadow = '0 15px 40px rgba(245,192,107,0.6)'
+      attackerEl.style.boxShadow = '0 15px 40px rgba(245,192,107,0.6), inset 0 0 20px rgba(255,255,0,0.3)'
+      attackerEl.style.filter = 'brightness(1.2) saturate(1.3)'
 
       setTimeout(() => {
-        // Phase 2: Lunge - move forward and scale down
+        // Phase 2: Lunge - move forward with collision prediction
         const targetRect = targetEl.getBoundingClientRect()
         const attackerRect = attackerEl.getBoundingClientRect()
-        const deltaX = (targetRect.left - attackerRect.left) * 0.3
-        const deltaY = (targetRect.top - attackerRect.top) * 0.3
+        const deltaX = (targetRect.left - attackerRect.left) * 0.4
+        const deltaY = (targetRect.top - attackerRect.top) * 0.4
 
         attackerEl.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.95) rotateX(20deg)`
-        attackerEl.style.boxShadow = '0 5px 20px rgba(245,192,107,0.4)'
+        attackerEl.style.boxShadow = '0 10px 30px rgba(245,192,107,0.7), 0 0 40px rgba(255,200,0,0.5)'
+
+        // Add battle cry particle effect
+        const battleCry = document.createElement('div')
+        battleCry.className = 'battle-cry-particle'
+        battleCry.style.left = `${attackerRect.left + attackerRect.width / 2}px`
+        battleCry.style.top = `${attackerRect.top + attackerRect.height / 2}px`
+        document.body.appendChild(battleCry)
 
         setTimeout(() => {
-          // Phase 3: Animate projectile (invisible melee projectile for timing)
+          if (battleCry.parentNode) battleCry.parentNode.removeChild(battleCry)
+        }, 200)
+
+        setTimeout(() => {
+          // Phase 3: Final impact with enhanced after-effects
           attackerEl.style.transform = originalTransform
           attackerEl.style.boxShadow = ''
+          attackerEl.style.filter = ''
           dispatch({
             type: 'INITIATE_ANIMATION',
             payload: animationPayload
           })
           dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
-        }, 400)
-      }, 300)
+        }, 500)
+      }, 400)
     } else {
       // Ranged attack anticipation: slight glow and scale up
       const originalTransform = attackerEl.style.transform

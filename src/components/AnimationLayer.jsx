@@ -4,6 +4,51 @@ import './AnimationLayer.css'
 export default function AnimationLayer({ animation, onComplete }) {
   const [animatedElement, setAnimatedElement] = useState(null)
 
+  // Collision particle system
+  useEffect(() => {
+    const handleCollisionEvent = (event) => {
+      const { x, y, type } = event.detail
+      if (type === 'repulse') {
+        createCollisionEffect(x, y)
+      }
+    }
+
+    document.addEventListener('cardCollision', handleCollisionEvent)
+    return () => document.removeEventListener('cardCollision', handleCollisionEvent)
+  }, [])
+
+  const createCollisionEffect = (x, y) => {
+    // Create repulsion sparks
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const spark = document.createElement('div')
+        spark.className = 'collision-spark'
+        spark.style.left = `${x + (Math.random() - 0.5) * 40}px`
+        spark.style.top = `${y + (Math.random() - 0.5) * 40}px`
+
+        const angle = Math.random() * Math.PI * 2
+        const distance = 20 + Math.random() * 30
+        spark.style.setProperty('--target-x', `${Math.cos(angle) * distance}px`)
+        spark.style.setProperty('--target-y', `${Math.sin(angle) * distance}px`)
+
+        document.body.appendChild(spark)
+
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark)
+          }
+        }, 600)
+      }, Math.random() * 100)
+    }
+
+    // Small shake effect
+    const shakenElements = document.querySelectorAll('.card[data-card-id]')
+    shakenElements.forEach(el => {
+      el.style.animation = 'card-shake 0.15s ease-out'
+      setTimeout(() => el.style.animation = '', 150)
+    })
+  }
+
   useEffect(() => {
     if (!animation.active || !animation.startRect || !animation.endRect) {
       setAnimatedElement(null)
