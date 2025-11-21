@@ -311,8 +311,10 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
     }
 
     case 'buff_all': {
+      console.log(`Aplicando Bênção: +${power.amount || 2}/+${power.amount || 2} a todas unidades de ${playerKey}`)
       const amount = power.amount || 2
       const player = {...state[playerKey]}
+      const oldField = player.field
       player.field = safeLaneCopy(player.field)
       ;['melee', 'ranged'].forEach(lane => {
         player.field[lane] = player.field[lane].map(c => ({
@@ -320,19 +322,26 @@ function applyHeroPowerEffect(state, playerKey, power, targetCardId = null, targ
           attack: c.attack + amount,
           defense: c.defense + amount
         }))
+        console.log(`Bênção aplicada a ${lane}: ${player.field[lane].length} unidades buffs`)
       })
+      console.log('Campo antes:', oldField)
+      console.log('Campo depois da Bênção:', player.field)
       return {...state, [playerKey]: player}
     }
 
     case 'damage_all_enemies': {
+      console.log(`Aplicando Tempestade: ${power.amount || 2} dano a todas unidades inimigas`)
       const dmg = power.amount || 2
       const opponent = {...state[opponentKey]}
       opponent.field = safeLaneCopy(opponent.field)
       ;['melee', 'ranged'].forEach(lane => {
+        const initialCount = opponent.field[lane].length
         opponent.field[lane] = opponent.field[lane].map(c => ({
           ...c,
           defense: c.defense - dmg
         })).filter(c => c.defense > 0)
+        const finalCount = opponent.field[lane].length
+        console.log(`Tempestade em ${lane}: ${initialCount} -> ${finalCount} unidades restantes`)
       })
       return {
         ...state,
@@ -814,38 +823,86 @@ export function GameProvider({children}){
       let mana = stateRef.current.player2.mana
       const aiPlayer = state.player2
 
-      // Smart card priority: high score first, favor low cost in early turns
-      const playable = state.player2.hand.filter(c => {
-        let cost = c.mana
-        if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
-        cost = Math.max(1, cost)
-        return cost <= mana
-      }).map(card => {
-        let attack = card.attack || 0
-        let defense = card.defense || 0
-        if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) defense += 1
-        if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) attack += 1
-        if (card.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) attack += 1
+      // Mana Curve AI: For turns 1-3, play multiple cards prioritizing high cost to maximize mana usage
+      if (state.turnCount <= 3) {
+        let remainingMana = mana
+        const handCopy = [...state.player2.hand]
+        while (remainingMana > 0) {
+          const currentPlayable = handCopy.filter(c => {
+            let cost = c.mana
+            if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+            cost = Math.max(1, cost)
+            return cost <= remainingMana
+          }).sort((a, b) => {
+            // Sort by mana cost descending to prioritize high cost
+            let aCost = a.mana
+            let bCost = b.mana
+            if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) {
+              aCost = Math.max(1, aCost - 1)
+              bCost = Math.max(1, bCost - 1)
+            }
+            if (aCost === bCost) {
+              // If tied, prioritize highest stat value (attack + defense)
+              const aStats = (a.attack || 0) + (a.defense || 0)
+              const bStats = (b.attack || 0) + (b.defense || 0)
+              if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) {
+                aStats += 1
+                bStats += 1
+              }
+              if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) {
+                aStats += 1
+                bStats += 1
+              }
+              if (a.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) {
+                aStats += 3
+                bStats += 3
+              }
+              return bStats - aStats
+            }
+            return bCost - aCost
+          })
+          if (currentPlayable.length === 0) break
+          const card = currentPlayable[0]
+          let cost = card.mana
+          if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+          cost = Math.max(1, cost)
+          dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
+          remainingMana -= cost
+          const index = handCopy.findIndex(c => c.id === card.id)
+          handCopy.splice(index, 1)
+          await delay(800)
+          if (cancelled) return
+        }
+      } else {
+        // Post-curve: Single card play with full scoring
+        const playable = state.player2.hand.filter(c => {
+          let cost = c.mana
+          if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+          cost = Math.max(1, cost)
+          return cost <= mana
+        }).map(card => {
+          let attack = card.attack || 0
+          let defense = card.defense || 0
+          if (aiPlayer.passiveSkills?.some(id => id.includes('hp_boost'))) defense += 1
+          if (aiPlayer.passiveSkills?.some(id => id.includes('atk_boost'))) attack += 1
+          if (card.type.lane === 'ranged' && aiPlayer.passiveSkills?.some(id => id.includes('ranged_damage'))) attack += 1
 
-        let cost = card.mana
-        if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
-        cost = Math.max(1, cost)
+          let cost = card.mana
+          if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
+          cost = Math.max(1, cost)
 
-        // Score: efficiency + effects, with early game cost favorability
-        let score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
-        // Favor low cost in early turns: bonus for low cost, penalty for high cost relative to turn
-        const turnModifier = Math.max(0, 6 - state.turnCount) // Early turns (1-6) get favor, later turns less
-        score += (turnModifier * (6 - cost)) / 10 // Low cost bonus in early turns
-        if (state.turnCount <= 4 && cost > 3) score -= (cost - 3) * 0.5 // Penalize high cost early
-        return {...card, aiScore: score, effectiveCost: cost}
-      }).sort((a,b) => b.aiScore - a.aiScore)
+          // Score: efficiency + effects
+          let score = ((attack + defense) / cost) + ((card.effects?.length || 0) * 3) + (card.type.name === 'Clérigo' ? 2 : 0)
+          return {...card, aiScore: score, effectiveCost: cost}
+        }).sort((a,b) => b.aiScore - a.aiScore)
 
-      if (playable.length > 0) {
-        const card = playable[0]
-        dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
-        mana -= card.effectiveCost
-        await delay(800)
-        if (cancelled) return
+        if (playable.length > 0) {
+          const card = playable[0]
+          dispatch({type: 'PLAY_CARD', payload: {cardId: card.id, playerKey: 'player2'}})
+          mana -= card.effectiveCost
+          await delay(800)
+          if (cancelled) return
+        }
       }
 
       // Use hero power if beneficial
