@@ -1027,19 +1027,12 @@ export function GameProvider({children}){
             if (minions.length > 0) targetId = minions[0].id
             else targetIsHero = true
           } else if (bestPower.effect === 'heal_target') {
-            // Heal most damaged unit or hero - check both units AND hero
-            let mostDamagedAlly = null
-            let lowestHp = postPowerState.player2.hp
+            // Prefer to heal units over hero
             const units = [...postPowerState.player2.field.melee, ...postPowerState.player2.field.ranged].sort((a,b) => a.defense - b.defense)
             if (units.length > 0) {
-              mostDamagedAlly = units[0]
-              lowestHp = Math.min(lowestHp, mostDamagedAlly.defense)
-            }
-            // Target hero if more damaged than units, or if no units to heal
-            if (postPowerState.player2.hp === lowestHp || units.length === 0) {
+              targetId = units[0].id
+            } else {
               targetIsHero = true
-            } else if (mostDamagedAlly) {
-              targetId = mostDamagedAlly.id
             }
           }
 
@@ -1054,47 +1047,54 @@ export function GameProvider({children}){
       // AI Combat Phase - Smart targeting
       const attackerUnits = [...stateRef.current.player2.field.melee, ...stateRef.current.player2.field.ranged].filter(c => c.canAttack)
       const opponent = stateRef.current.player1
+      const aiField = stateRef.current.player2.field
 
       for (const attacker of attackerUnits) {
         if (cancelled) return
 
+        const isCleric = attacker.type.name === 'Clérigo'
         let possibleTargets = []
-        const allEnemyMinions = [...opponent.field.melee, ...opponent.field.ranged]
+        let damage = attacker.attack
 
-        // Check for taunts first
-        const taunts = allEnemyMinions.filter(m => m.effects?.some(e => e.effect === 'TAUNT'))
-        if (taunts.length > 0) {
-          possibleTargets = taunts
+        if (isCleric) {
+          // For clerics, targets are own minions to heal, sorted by lowest HP first
+          possibleTargets = [...aiField.melee, ...aiField.ranged].sort((a, b) => a.defense - b.defense)
         } else {
-          if (attacker.type.lane === 'ranged') {
-            possibleTargets = allEnemyMinions
-          } else if (attacker.type.lane === 'melee') {
-            if (opponent.field.melee.length > 0) {
-              possibleTargets = opponent.field.melee
-            } else {
+          // For attackers, target enemies
+          const allEnemyMinions = [...opponent.field.melee, ...opponent.field.ranged]
+
+          // Check for taunts first
+          const taunts = allEnemyMinions.filter(m => m.effects?.some(e => e.effect === 'TAUNT'))
+          if (taunts.length > 0) {
+            possibleTargets = taunts
+          } else {
+            if (attacker.type.lane === 'ranged') {
               possibleTargets = allEnemyMinions
+            } else if (attacker.type.lane === 'melee') {
+              if (opponent.field.melee.length > 0) {
+                possibleTargets = opponent.field.melee
+              } else {
+                possibleTargets = allEnemyMinions
+              }
             }
           }
-        }
 
-        // Sort by priority: lethal, low defense
-        possibleTargets.sort((a, b) => {
-          const lethalA = attacker.attack >= a.defense ? 1 : 0
-          const lethalB = attacker.attack >= b.defense ? 1 : 0
-          if (lethalA !== lethalB) return lethalB - lethalA
-          return a.defense - b.defense
-        })
+          // Sort by priority: lethal, low defense
+          possibleTargets.sort((a, b) => {
+            const lethalA = attacker.attack >= a.defense ? 1 : 0
+            const lethalB = attacker.attack >= b.defense ? 1 : 0
+            if (lethalA !== lethalB) return lethalB - lethalA
+            return a.defense - b.defense
+          })
+        }
 
         let targetId = null
         let targetIsHero = false
-        let damage = attacker.attack
 
         if (possibleTargets.length > 0) {
           targetId = possibleTargets[0].id
         } else {
-          // No minions, attack hero (unless allied cleric healing)
-          const isAllyCleric = attacker.type.name === 'Clérigo'
-          if (isAllyCleric && opponent.hp >= 30) return // Don't waste heal on max HP
+          // No minions, attack/heal hero
           targetIsHero = true
         }
 
