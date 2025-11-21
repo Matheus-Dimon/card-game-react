@@ -100,10 +100,11 @@ export const CARD_EFFECTS = {
   DEATHRATTLE_DAMAGE: {
     type: 'DEATHRATTLE',
     trigger: 'ON_DEATH',
-    effect: 'DAMAGE_RANDOM_ENEMY',
+    effect: 'DAMAGE_TARGET_ENEMY',
     value: 2,
-    description: 'Causa 2 de dano aleatório',
-    icon: '🎲'
+    description: 'Causa 2 de dano a um alvo',
+    icon: '🎯',
+    requiresTarget: true
   },
 }
 

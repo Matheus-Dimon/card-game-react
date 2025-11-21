@@ -41,7 +41,7 @@ export default function DeckSetup() {
         {eff.effect === 'HEAL_HERO' && '💚'}
         {eff.effect === 'DRAW_CARD' && '📖'}
         {eff.effect === 'BUFF_ALL_ALLIES' && '💪'}
-        {eff.effect === 'DAMAGE_RANDOM_ENEMY' && '🎲'}
+        {eff.effect === 'DAMAGE_TARGET_ENEMY' && '�'}
       </span>
     ))
   }
@@ -52,7 +52,14 @@ export default function DeckSetup() {
         <h2>⚔️ Monte seu Deck</h2>
         <p className="setup-subtitle">
           Escolha exatamente 15 cartas • {selected.length}/15 selecionadas
+          {selected.length === 15 && <span className="warning"> - Deck completo!</span>}
         </p>
+        {selected.length > 0 && (
+          <div className="selected-cards-list">
+            <h3>Cartas Selecionadas (Ordem):</h3>
+            <p>{selected.map((id, idx) => `${idx + 1}. ${pool.find(c => c.id === id)?.name || id}`).join(', ')}</p>
+          </div>
+        )}
       </div>
 
       <div className="deck-grid">

@@ -7,7 +7,7 @@ import HeroPowerBadge from './HeroPowerBadge.jsx'
 import GameOverModal from './GameOverModal.jsx'
 import InstructionsPanel from './InstructionsPanel.jsx'
 import AnimationLayer from './AnimationLayer.jsx'
-import { HERO_IMAGES } from '../utils/constants.js'
+import { HERO_IMAGES, HERO_PASSIVE_OPTIONS } from '../utils/constants.js'
 
 // Sistema de sons MELHORADO
 const playSound = (type) => {
@@ -721,6 +721,16 @@ export default function Board() {
             onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})}
             disabledProps={{ disabled: false, mana: 0, hasUsedHeroPower: player2.hasUsedHeroPower }}
           />
+          <div className="passive-skills-list">
+            {player2.passiveSkills && player2.passiveSkills.map(skillId => {
+              const skill = HERO_PASSIVE_OPTIONS.P2.find(s => s.id === skillId);
+              return skill ? (
+                <div key={skillId} className="passive-skill-item" title={skill.description}>
+                  {skill.icon} {skill.name}
+                </div>
+              ) : null;
+            })}
+          </div>
         </div>
 
         <div className="lanes-vertical">
@@ -784,6 +794,16 @@ export default function Board() {
             onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player1", powerId}})}
             disabledProps={{ mana: player1.mana, hasUsedHeroPower: player1.hasUsedHeroPower }}
           />
+          <div className="passive-skills-list">
+            {player1.passiveSkills && player1.passiveSkills.map(skillId => {
+              const skill = HERO_PASSIVE_OPTIONS.P1.find(s => s.id === skillId);
+              return skill ? (
+                <div key={skillId} className="passive-skill-item" title={skill.description}>
+                  {skill.icon} {skill.name}
+                </div>
+              ) : null;
+            })}
+          </div>
         </div>
       </div>
 

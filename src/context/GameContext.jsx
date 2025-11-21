@@ -52,8 +52,8 @@ const initialState = {
 /* ------------------- AI Selections ------------------- */
 function selectAIPassives() {
   const pool = HERO_PASSIVE_OPTIONS.P2
-  // Choose best combination: atk_boost, hp_boost, cheaper_minions or card_draw
-  const preferred = ['passive_atk_boost_p2', 'passive_hp_boost_p2', 'passive_cheaper_minions_p2', 'passive_card_draw_p2']
+  // Chosen: magia negra, pacto sombrio, vigor das trevas
+  const preferred = ['passive_mana_regen_p2', 'passive_cheaper_minions_p2', 'passive_hp_boost_p2']
   const selected = []
   preferred.forEach(id => {
     const skill = pool.find(s => s.id === id)
@@ -107,8 +107,8 @@ function selectAIDeck() {
 
 function selectAIPowers() {
   const pool = HERO_POWER_OPTIONS.P2
-  // Prefer: damage to hero targeting, armor, draw
-  const preferredOrder = ['p2_fireblast', 'p2_armor', 'p2_draw', 'p2_heal_target']
+  // Prefer: cristal arcano and tempestade
+  const preferredOrder = ['p2_mana_boost', 'p2_damage_all']
   const selected = []
   preferredOrder.forEach(id => {
     const power = pool.find(p => p.id === id)
@@ -472,15 +472,9 @@ function reducer(state=initialState, action){
         p.deck = p.deck.slice(n)
       }
 
-      let startHandP1 = 3
-      if (state.selectedPassiveSkills.some(id => id.includes('card_draw'))) {
-        startHandP1 = 4
-      }
+      let startHandP1 = 4
 
-      let startHandP2 = 3
-      if (aiPassives.some(id => id.includes('card_draw'))) {
-        startHandP2 = 4
-      }
+      let startHandP2 = 6
 
       draw(p1, startHandP1)
       draw(p2, startHandP2)
