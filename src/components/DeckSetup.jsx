@@ -8,19 +8,17 @@ export default function DeckSetup() {
   const selected = state.selectedDeckCards || []
   const maxAllowed = 3 // Max 3 copies per card
 
-  const addCard = (id) => {
-    const count = selected.filter(x => x === id).length
-    if (count >= maxAllowed) return
-    const newSelected = [...selected, id]
-    dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelected })
-  }
-
-  const removeCard = (id) => {
-    const index = selected.lastIndexOf(id)
-    if (index === -1) return
-    const newSelected = [...selected]
-    newSelected.splice(index, 1)
-    dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelected })
+  const handleCardClick = (cardId, selectedCards) => {
+    const count = selectedCards.filter(x => x === cardId).length
+    let newSelected
+    if (count < 3) {
+      newSelected = [...selectedCards, cardId] // Add one copy
+    } else if (count === 3) {
+      newSelected = selectedCards.filter(x => x !== cardId) // Remove all copies
+    } else {
+      newSelected = selectedCards // Fallback, should not happen
+    }
+    return newSelected
   }
 
   const handleNext = () => {
@@ -61,14 +59,10 @@ export default function DeckSetup() {
         {pool.map(c => (
           <div
             key={c.id}
-            className={`deck-card ${selected.includes(c.id) ? 'selected' : ''} ${selected.length >= 15 && !selected.includes(c.id) ? 'disabled' : ''}`}
+            className={`deck-card ${selected.includes(c.id) ? 'selected' : ''}`}
             onClick={() => {
-              if (selected.length >= 15 && !selected.includes(c.id)) return
-              addCard(c.id)
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault()
-              removeCard(c.id)
+              const newSelection = handleCardClick(c.id, selected)
+              dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelection })
             }}
           >
             <img src={c.image} alt={c.name} onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&h=300&fit=crop&q=80'} />
