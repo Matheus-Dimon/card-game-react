@@ -341,11 +341,44 @@ export default function Board() {
       attackerEl.style.filter = 'brightness(1.2) saturate(1.3)'
 
       setTimeout(() => {
-        // Phase 2: Lunge - move forward with collision prediction
+        // Phase 2: Lunge - move forward with collision prediction, constrained within board boundaries
         const targetRect = targetEl.getBoundingClientRect()
         const attackerRect = attackerEl.getBoundingClientRect()
-        const deltaX = (targetRect.left - attackerRect.left) * 0.4
-        const deltaY = (targetRect.top - attackerRect.top) * 0.4
+
+        // Get board container boundaries to constrain movement
+        const boardContainer = document.querySelector('.board-container')
+        const boardRect = boardContainer ? boardContainer.getBoundingClientRect() : {
+          left: 50, right: window.innerWidth - 50,
+          top: 50, bottom: window.innerHeight - 50
+        }
+
+        // Calculate desired movement
+        let deltaX = (targetRect.left - attackerRect.left) * 0.4
+        let deltaY = (targetRect.top - attackerRect.top) * 0.4
+
+        // Clamp movement to stay within board boundaries
+        const newCardLeft = attackerRect.left + deltaX
+        const newCardRight = newCardLeft + attackerRect.width
+        const newCardTop = attackerRect.top + deltaY
+        const newCardBottom = newCardTop + attackerRect.height
+
+        // Constrain horizontal movement
+        const leftBoundary = boardRect.left + 20
+        const rightBoundary = boardRect.right - 20
+        if (newCardLeft < leftBoundary) {
+          deltaX = leftBoundary - attackerRect.left
+        } else if (newCardRight > rightBoundary) {
+          deltaX = rightBoundary - attackerRect.width - attackerRect.left
+        }
+
+        // Constrain vertical movement to avoid card disappearing off screen
+        const topBoundary = boardRect.top + 20
+        const bottomBoundary = boardRect.bottom - 20
+        if (newCardTop < topBoundary) {
+          deltaY = topBoundary - attackerRect.top
+        } else if (newCardBottom > bottomBoundary) {
+          deltaY = bottomBoundary - attackerRect.height - attackerRect.top
+        }
 
         attackerEl.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.95) rotateX(20deg)`
         attackerEl.style.boxShadow = '0 10px 30px rgba(245,192,107,0.7), 0 0 40px rgba(255,200,0,0.5)'
