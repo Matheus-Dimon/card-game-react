@@ -76,6 +76,10 @@ export default function DeckSetup() {
                 className={`deck-card ${selected.includes(c.id) ? 'selected' : ''}`}
                 onClick={() => {
                   const newSelection = handleCardClick(c.id, selected)
+                  if (newSelection.length > 15) {
+                    alert('Você não pode selecionar mais de 15 cartas!')
+                    return
+                  }
                   dispatch({ type: 'SET_SELECTED_DECK_CARDS', payload: newSelection })
                 }}
               >
