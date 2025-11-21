@@ -170,10 +170,21 @@ export default function Board() {
   const onPlayerFieldCardClick = (card) => {
     if (turn !== 1) return
 
-    // If currently targeting for hero power, do nothing
-    if (targeting.active) return
+    // If currently targeting for hero power, apply hero power with target
+    if (targeting.active && targeting.playerUsing === 'player1') {
+      dispatch({
+        type: 'APPLY_HERO_POWER_WITH_TARGET',
+        payload: {
+          playerKey: 'player1',
+          power: targeting.power,
+          targetCardId: card.id,
+          targetIsHero: false
+        }
+      })
+      return
+    }
 
-    // If currently targeting for healing, select target to heal
+    // If currently targeting for cleric healing, select target to heal
     if (state.targeting.healingActive) {
       // Only allow healing own cards or deselect if clicked same
       if (isCardOwner(card.id, 'player1')) {
@@ -475,7 +486,20 @@ export default function Board() {
       return
     }
 
-    if (!isHero && target && isCardOwner(target.id, playerUsing)) {
+    // For healing powers, don't allow targeting enemy heroes
+    if (power.effect === 'heal_target' && isHero && targetHeroKey !== playerUsing) {
+      dispatch({ type: 'CANCEL_TARGETING' })
+      return
+    }
+
+    // For non-healing powers, don't allow targeting own cards
+    if (power.effect !== 'heal_target' && !isHero && target && isCardOwner(target.id, playerUsing)) {
+      dispatch({ type: 'CANCEL_TARGETING' })
+      return
+    }
+
+    // For healing powers, don't allow targeting enemy cards
+    if (power.effect === 'heal_target' && !isHero && target && !isCardOwner(target.id, playerUsing)) {
       dispatch({ type: 'CANCEL_TARGETING' })
       return
     }

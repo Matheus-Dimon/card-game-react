@@ -823,7 +823,7 @@ export function GameProvider({children}){
       let mana = stateRef.current.player2.mana
       const aiPlayer = state.player2
 
-      // Mana Curve AI: For turns 1-3, play multiple cards prioritizing high cost to maximize mana usage
+      // Early Game AI: For turns 1-3, prioritize only cost 1 and 2 cards
       if (state.turnCount <= 3) {
         let remainingMana = mana
         const handCopy = [...state.player2.hand]
@@ -832,7 +832,8 @@ export function GameProvider({children}){
             let cost = c.mana
             if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) cost -= 1
             cost = Math.max(1, cost)
-            return cost <= remainingMana
+            // Only consider cards with effective cost of 1 or 2
+            return cost <= remainingMana && cost <= 2
           }).sort((a, b) => {
             // Sort by mana cost ascending to prioritize low cost (mana curve)
             let aCost = a.mana
@@ -967,10 +968,20 @@ export function GameProvider({children}){
             if (minions.length > 0) targetId = minions[0].id
             else targetIsHero = true
           } else if (bestPower.effect === 'heal_target') {
-            // Heal most damaged unit or hero
+            // Heal most damaged unit or hero - check both units AND hero
+            let mostDamagedAlly = null
+            let lowestHp = postPowerState.player2.hp
             const units = [...postPowerState.player2.field.melee, ...postPowerState.player2.field.ranged].sort((a,b) => a.defense - b.defense)
-            if (units.length > 0) targetId = units[0].id
-            else targetIsHero = true
+            if (units.length > 0) {
+              mostDamagedAlly = units[0]
+              lowestHp = Math.min(lowestHp, mostDamagedAlly.defense)
+            }
+            // Target hero if more damaged than units, or if no units to heal
+            if (postPowerState.player2.hp === lowestHp || units.length === 0) {
+              targetIsHero = true
+            } else if (mostDamagedAlly) {
+              targetId = mostDamagedAlly.id
+            }
           }
 
           if (targetId || targetIsHero) {
