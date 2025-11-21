@@ -3,6 +3,7 @@ import HeroPowerTooltip from './HeroPowerTooltip'
 
 export default function HeroPowerBadge({ powers = [], onClick, disabledProps = {} }) {
   const [showTooltip, setShowTooltip] = React.useState(null)
+  const [recentlyClicked, setRecentlyClicked] = React.useState(false)
 
   if (!powers || powers.length === 0) return null
 
@@ -11,12 +12,17 @@ export default function HeroPowerBadge({ powers = [], onClick, disabledProps = {
   return (
     <div className="hero-powers-container">
       {powers.map((power, idx) => {
-        const isDisabled = disabled || power.cost > mana
+        const isDisabled = disabled || power.cost > mana || hasUsedHeroPower || recentlyClicked
         return (
           <div
             key={power.id || idx}
             className={`hero-power ${isDisabled ? 'disabled' : ''}`}
-            onClick={() => (!isDisabled && onClick) ? onClick(power.id) : undefined}
+            onClick={() => {
+              if (isDisabled || !onClick) return
+              setRecentlyClicked(true)
+              onClick(power.id)
+              setTimeout(() => setRecentlyClicked(false), 100) // Reset after a short delay
+            }}
             style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
             onMouseEnter={() => setShowTooltip(power.id)}
             onMouseLeave={() => setShowTooltip(null)}

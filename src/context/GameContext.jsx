@@ -834,7 +834,7 @@ export function GameProvider({children}){
             cost = Math.max(1, cost)
             return cost <= remainingMana
           }).sort((a, b) => {
-            // Sort by mana cost descending to prioritize high cost
+            // Sort by mana cost ascending to prioritize low cost (mana curve)
             let aCost = a.mana
             let bCost = b.mana
             if (aiPlayer.passiveSkills?.some(id => id.includes('cheaper_minions'))) {
@@ -859,7 +859,7 @@ export function GameProvider({children}){
               }
               return bStats - aStats
             }
-            return bCost - aCost
+            return aCost - bCost
           })
           if (currentPlayable.length === 0) break
           const card = currentPlayable[0]

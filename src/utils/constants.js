@@ -240,16 +240,6 @@ export const HERO_POWER_OPTIONS = {
       description: "Suas unidades corpo a corpo ganham Charge neste turno"
     },
     {
-      id: "p1_buff_all",
-      name: "Bênção",
-      cost: 2,
-      requiresTarget: false,
-      effect: "buff_all",
-      amount: 2,
-      icon: "💪",
-      description: "+2/+2 a todas suas unidades"
-    },
-    {
       id: "p1_damage_all",
       name: "Tempestade",
       cost: 2,
@@ -331,16 +321,6 @@ export const HERO_POWER_OPTIONS = {
       amount: 1,
       icon: "⚡",
       description: "Suas unidades corpo a corpo ganham Charge neste turno"
-    },
-    {
-      id: "p2_buff_all",
-      name: "Bênção",
-      cost: 2,
-      requiresTarget: false,
-      effect: "buff_all",
-      amount: 2,
-      icon: "💪",
-      description: "+2/+2 a todas suas unidades"
     },
     {
       id: "p2_damage_all",

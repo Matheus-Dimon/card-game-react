@@ -589,7 +589,7 @@ export default function Board() {
           <HeroPowerBadge
             powers={player2.heroPowers}
             onClick={(powerId) => dispatch({ type: "HERO_POWER_CLICK", payload: {player: "player2", powerId}})}
-            disabledProps={{ disabled: false, mana: 0 }}
+            disabledProps={{ disabled: false, mana: 0, hasUsedHeroPower: player2.hasUsedHeroPower }}
           />
         </div>
 
