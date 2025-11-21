@@ -2,7 +2,7 @@ import React from 'react'
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import CardTooltip from './CardTooltip'
 
-export default function Card({ card, isField = false, onClick, className = '', selected = false, isTargetable = false, playable = false }) {
+export default function Card({ card, isField = false, onClick, className = '', selected = false, isTargetable = false, playable = false, hasRedBorder = false }) {
   const [showTooltip, setShowTooltip] = React.useState(false)
   const cardRef = React.useRef(null)
   const collisionCooldownRef = React.useRef(0)
@@ -52,7 +52,7 @@ export default function Card({ card, isField = false, onClick, className = '', s
 
     const checkCollisions = () => {
       const currentRect = cardRef.current.getBoundingClientRect()
-      const otherCards = document.querySelectorAll('[data-card-id]:not([data-card-id="' + card.id + '"])')
+      const otherCards = document.querySelectorAll('[data-card-id]:not([data-card-id="' + card.id + '"])']
 
 
       otherCards.forEach(otherCardEl => {
@@ -111,13 +111,13 @@ export default function Card({ card, isField = false, onClick, className = '', s
     const interval = setInterval(checkCollisions, 50) // Check collisions 20 times per second
     return () => clearInterval(interval)
   }, [isField, card.id, x, y, scale, rotation])
-  
+
   return (
     <motion.div
       ref={cardRef}
       data-card-id={card.id}
       onClick={() => onClick && onClick(card)}
-      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${isField && card.canAttack ? 'unit-attackable' : ''} ${isField && !card.canAttack ? 'unit-unattackable' : ''} ${playable ? 'playable' : 'not-playable'}`}
+      className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${isField && card.canAttack ? 'unit-attackable' : ''} ${isField && !card.canAttack ? 'unit-unattackable' : ''} ${playable ? 'playable' : 'not-playable'} ${hasRedBorder ? 'card-red-border' : ''}`}
       style={{
         x: smoothX,
         y: smoothY,
@@ -154,7 +154,7 @@ export default function Card({ card, isField = false, onClick, className = '', s
         />
         <div className="card-mana">{card.mana}</div>
         <div className="card-type">{card.type.name.charAt(0)}</div>
-        
+
         {!isField && (
           <div className="card-stats-overlay">
             <div className="card-name">{card.name}</div>
@@ -179,7 +179,7 @@ export default function Card({ card, isField = false, onClick, className = '', s
             )}
           </div>
         )}
-        
+
         {isField && (
           <>
             <div className="card-stats">
