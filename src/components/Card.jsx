@@ -38,8 +38,20 @@ export default function Card({ card, isField = false, onClick, className = '', s
       className={`card ${sizeClass} ${className} ${selected ? 'selected' : ''} ${isTargetable ? 'target-highlight' : ''} ${!card.canAttack && isField ? 'card-tired' : ''} ${playable ? 'playable' : 'not-playable'}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
-      whileHover={{ scale: 1.05, y: -5 }}
-      whileTap={{ scale: 1.1 }}
+      whileHover={{
+        scale: 1.08,
+        y: -8,
+        rotateY: -2,
+        rotateX: 2,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{
+        scale: 0.95,
+        y: -2,
+        rotateY: 0,
+        rotateX: -5,
+        transition: { duration: 0.1 }
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8 }}

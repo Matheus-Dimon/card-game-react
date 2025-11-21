@@ -13,19 +13,37 @@ export default function BattlefieldLane({ cards = [], laneType, playerKey, onCar
   }
 
   const cardVariants = {
-    hidden: { scale: 0, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 200 } },
-    exit: {
-      scale: 1.2,
+    hidden: {
+      scale: 0.6,
       opacity: 0,
-      y: -30,
-      rotate: -15,
+      y: 30,
+      rotateZ: -10,
+      rotateY: 20
+    },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      y: 0,
+      rotateZ: 0,
+      rotateY: 0,
       transition: {
-        duration: 0.5,
-        ease: "easeIn",
-        times: [0, 0.3, 1]
+        type: "spring",
+        stiffness: 300,
+        damping: 25,
+        duration: 0.7
+      }
+    },
+    exit: {
+      scale: 1.3,
+      opacity: 0,
+      y: -50,
+      rotate: -20,
+      rotateY: 30,
+      transition: {
+        duration: 0.6,
+        ease: "easeInOut"
       },
-      filter: "brightness(2)"
+      filter: "brightness(1.5) hue-rotate(180deg)"
     }
   }
 

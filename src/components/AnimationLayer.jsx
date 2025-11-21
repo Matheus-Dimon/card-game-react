@@ -10,6 +10,50 @@ export default function AnimationLayer({ animation, onComplete }) {
       return
     }
 
+    const createParticleEffect = (x, y, count = 8) => {
+      for (let i = 0; i < count; i++) {
+        const spark = document.createElement('div')
+        spark.className = 'spark'
+        spark.style.left = `${x}px`
+        spark.style.top = `${y}px`
+        spark.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`)
+        spark.style.setProperty('--ty', `${(Math.random() - 0.5) * 100 - 30}px`)
+
+        document.body.appendChild(spark)
+
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark)
+          }
+        }, 800)
+      }
+    }
+
+    const createImpactEffect = (x, y) => {
+      // Create circular impact burst
+      const impact = document.createElement('div')
+      impact.className = 'impact-burst'
+      impact.style.left = `${x - 25}px`
+      impact.style.top = `${y - 25}px`
+      document.body.appendChild(impact)
+
+      setTimeout(() => {
+        if (impact.parentNode) {
+          impact.parentNode.removeChild(impact)
+        }
+      }, 600)
+
+      // Add screen shake effect to target
+      const targetEl = document.elementFromPoint(x, y)
+      if (targetEl && targetEl.classList.contains('card')) {
+        targetEl.style.animation = 'card-hit 0.3s ease-out'
+
+        setTimeout(() => {
+          targetEl.style.animation = ''
+        }, 300)
+      }
+    }
+
     // Create projectile element
     const projectile = document.createElement('div')
     projectile.className = `animation-projectile ${animation.projectile || 'default'}`
@@ -58,11 +102,15 @@ export default function AnimationLayer({ animation, onComplete }) {
       }, 800)
     }
 
-    // Remove projectile after animation
-    const timeout = setTimeout(() => {
+    // Add enhanced effects at projectile impact
+    const impactTimeout = setTimeout(() => {
+      createParticleEffect(targetX, targetY)
+      createImpactEffect(targetX, targetY)
+
       if (projectile.parentNode) {
         projectile.parentNode.removeChild(projectile)
       }
+
       // Call onComplete with callback action
       if (onComplete && animation.callbackAction) {
         onComplete(animation.callbackAction)
@@ -70,7 +118,7 @@ export default function AnimationLayer({ animation, onComplete }) {
     }, animation.duration || 1000)
 
     return () => {
-      clearTimeout(timeout)
+      clearTimeout(impactTimeout)
       if (projectile.parentNode) {
         projectile.parentNode.removeChild(projectile)
       }

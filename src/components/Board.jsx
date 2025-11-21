@@ -30,21 +30,21 @@ const playSound = (type) => {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         const filter = ctx.createBiquadFilter()
-        
+
         filter.type = 'bandpass'
         filter.frequency.value = 800
-        
+
         osc.connect(filter)
         filter.connect(gain)
         gain.connect(ctx.destination)
-        
+
         osc.type = 'sawtooth'
         osc.frequency.setValueAtTime(300, ctx.currentTime)
         osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.15)
-        
+
         gain.gain.setValueAtTime(0.5, ctx.currentTime)
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
-        
+
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.15)
       },
@@ -53,17 +53,17 @@ const playSound = (type) => {
         const ctx = new AudioContext()
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
-        
+
         osc.connect(gain)
         gain.connect(ctx.destination)
-        
+
         osc.type = 'sine'
         osc.frequency.setValueAtTime(2000, ctx.currentTime)
         osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.2)
-        
+
         gain.gain.setValueAtTime(0.4, ctx.currentTime)
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2)
-        
+
         osc.start(ctx.currentTime)
         osc.stop(ctx.currentTime + 0.2)
       },
@@ -110,7 +110,7 @@ const playSound = (type) => {
         })
       }
     }
-    
+
     if (sounds[type]) sounds[type]()
   } catch (err) {
     console.log('Audio context error:', err)
@@ -331,32 +331,58 @@ export default function Board() {
     }
 
     if (isMelee) {
-      // For melee, lift the card higher first, then animate dramatic movement
+      // Melee attack anticipation: lean back, then lunge forward
       const originalTransform = attackerEl.style.transform
-      attackerEl.style.transform = originalTransform + ' translateY(-40px) scale(1.1)' // Lift higher and scale a bit
-      animationPayload.isMelee = true
-      animationPayload.cardImage = attacker.type.image
-      animationPayload.targetEl = targetEl
-      animationPayload.drama = true // Flag for more dramatic animation
+      const originalScale = attackerEl.style.scale || 1
+
+      // Phase 1: Anticipation - lean back
+      attackerEl.style.transform = originalTransform + ' translateY(-20px) rotateX(-10deg) scale(1.05)'
+      attackerEl.style.boxShadow = '0 15px 40px rgba(245,192,107,0.6)'
+
+      setTimeout(() => {
+        // Phase 2: Lunge - move forward and scale down
+        const targetRect = targetEl.getBoundingClientRect()
+        const attackerRect = attackerEl.getBoundingClientRect()
+        const deltaX = (targetRect.left - attackerRect.left) * 0.3
+        const deltaY = (targetRect.top - attackerRect.top) * 0.3
+
+        attackerEl.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.95) rotateX(20deg)`
+        attackerEl.style.boxShadow = '0 5px 20px rgba(245,192,107,0.4)'
+
+        setTimeout(() => {
+          // Phase 3: Animate projectile (invisible melee projectile for timing)
+          attackerEl.style.transform = originalTransform
+          attackerEl.style.boxShadow = ''
+          dispatch({
+            type: 'INITIATE_ANIMATION',
+            payload: animationPayload
+          })
+          dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
+        }, 400)
+      }, 300)
+    } else {
+      // Ranged attack anticipation: slight glow and scale up
+      const originalTransform = attackerEl.style.transform
+      const originalBoxShadow = attackerEl.style.boxShadow
+
+      attackerEl.style.transform = originalTransform + ' scale(1.02)'
+      attackerEl.style.boxShadow = '0 0 20px rgba(245,192,107,0.4)'
+
       setTimeout(() => {
         attackerEl.style.transform = originalTransform
+        attackerEl.style.boxShadow = originalBoxShadow || ''
+
+        // For ranged, use projectile
+        let projectile = 'stone'
+        if (attacker.type?.name?.toLowerCase().includes('arqueiro')) projectile = 'arrow'
+        if (attacker.type?.name?.toLowerCase().includes('cler')) projectile = 'spark'
+        animationPayload.projectile = projectile
         dispatch({
           type: 'INITIATE_ANIMATION',
           payload: animationPayload
         })
         dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
-      }, 400) // Longer delay
-    } else {
-      // For ranged, use projectile
-      let projectile = 'stone'
-      if (attacker.type?.name?.toLowerCase().includes('arqueiro')) projectile = 'arrow'
-      if (attacker.type?.name?.toLowerCase().includes('cler')) projectile = 'spark'
-      animationPayload.projectile = projectile
-      dispatch({
-        type: 'INITIATE_ANIMATION',
-        payload: animationPayload
-      })
-      dispatch({ type: 'SELECT_ATTACKER', payload: { cardId: null } })
+      }, 200)
     }
   }
 
@@ -450,7 +476,7 @@ export default function Board() {
     if (state.selectedCardId && selectedOwner === 'player1') {
       const attacker = [...player1.field.melee, ...player1.field.ranged].find(c => c.id === state.selectedCardId)
       if (!attacker) return false
-      
+
       if (attacker.type.lane === 'ranged') return true
       if (attacker.type.lane === 'melee' && player2.field.melee.length === 0) return true
     }
@@ -468,14 +494,14 @@ export default function Board() {
       <div className="board-root">
       <div className="board-section board-top">
         <div className="hero-area">
-          <Hero 
-            heroKey="player2" 
-            name="Enemy" 
-            hp={player2.hp} 
-            mana={player2.mana} 
+          <Hero
+            heroKey="player2"
+            name="Enemy"
+            hp={player2.hp}
+            mana={player2.mana}
             armor={player2.armor}
             image="https://images.unsplash.com/photo-1589561253898-768105ca91a8?w=200&h=200&fit=crop"
-            onClick={() => onTargetClick(null, true, 'player2')} 
+            onClick={() => onTargetClick(null, true, 'player2')}
             isTargetable={isPlayer2HeroTargetable()}
           />
           <HeroPowerBadge
@@ -484,62 +510,62 @@ export default function Board() {
             disabledProps={{ disabled: false, mana: 0 }}
           />
         </div>
-        
+
         <div className="lanes-vertical">
-          <BattlefieldLane 
-            cards={player2.field.ranged} 
-            laneType="ranged" 
-            playerKey="player2" 
-            onCardClick={(c) => onTargetClick(c, false, 'player2')} 
-            selectedCardId={state.selectedCardId} 
+          <BattlefieldLane
+            cards={player2.field.ranged}
+            laneType="ranged"
+            playerKey="player2"
+            onCardClick={(c) => onTargetClick(c, false, 'player2')}
+            selectedCardId={state.selectedCardId}
             selectedOwner={selectedOwner}
             targetingActive={targeting.active && targeting.playerUsing === 'player1'}
           />
-          <BattlefieldLane 
-            cards={player2.field.melee} 
-            laneType="melee" 
-            playerKey="player2" 
-            onCardClick={(c) => onTargetClick(c, false, 'player2')} 
-            selectedCardId={state.selectedCardId} 
+          <BattlefieldLane
+            cards={player2.field.melee}
+            laneType="melee"
+            playerKey="player2"
+            onCardClick={(c) => onTargetClick(c, false, 'player2')}
+            selectedCardId={state.selectedCardId}
             selectedOwner={selectedOwner}
             targetingActive={targeting.active && targeting.playerUsing === 'player1'}
           />
         </div>
       </div>
-      
+
       <div className="board-divider" />
 
       <div className="board-section board-bottom">
         <div className="lanes-vertical">
-          <BattlefieldLane 
-            cards={player1.field.melee} 
-            laneType="melee" 
-            playerKey="player1" 
-            onCardClick={onPlayerFieldCardClick} 
-            selectedCardId={state.selectedCardId} 
+          <BattlefieldLane
+            cards={player1.field.melee}
+            laneType="melee"
+            playerKey="player1"
+            onCardClick={onPlayerFieldCardClick}
+            selectedCardId={state.selectedCardId}
             selectedOwner={selectedOwner}
             targetingActive={false}
           />
-          <BattlefieldLane 
-            cards={player1.field.ranged} 
-            laneType="ranged" 
-            playerKey="player1" 
-            onCardClick={onPlayerFieldCardClick} 
-            selectedCardId={state.selectedCardId} 
+          <BattlefieldLane
+            cards={player1.field.ranged}
+            laneType="ranged"
+            playerKey="player1"
+            onCardClick={onPlayerFieldCardClick}
+            selectedCardId={state.selectedCardId}
             selectedOwner={selectedOwner}
             targetingActive={false}
           />
         </div>
 
         <div className="hero-area">
-          <Hero 
-            heroKey="player1" 
-            name="Player" 
-            hp={player1.hp} 
-            mana={player1.mana} 
+          <Hero
+            heroKey="player1"
+            name="Player"
+            hp={player1.hp}
+            mana={player1.mana}
             armor={player1.armor}
             image="https://images.unsplash.com/photo-1605792657660-596af9009e82?w=200&h=200&fit=crop"
-            onClick={() => onTargetClick(null, true, 'player1')} 
+            onClick={() => onTargetClick(null, true, 'player1')}
           />
           <HeroPowerBadge
             powers={player1.heroPowers}
@@ -550,7 +576,7 @@ export default function Board() {
       </div>
 
       <Hand cards={player1.hand} onPlayCard={playCard} playerMana={player1.mana} />
-      
+
       <div className="controls">
         <button className="btn" onClick={endTurn} disabled={turn !== 1}>
           {turn === 1 ? 'End Turn' : 'Enemy Turn...'}
@@ -592,7 +618,7 @@ export default function Board() {
 
       {gameOver && <GameOverModal winner={winner} onRestart={() => dispatch({type: 'RESTART_GAME'})} />}
     </div>
-    
+
     <InstructionsPanel />
   </div>
   )
