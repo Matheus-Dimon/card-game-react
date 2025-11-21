@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
 import { GameProvider, GameContext } from '../context/GameContext'
-import Board from '../components/Board'
 import DeckSetup from '../components/DeckSetup'
 import HeroPowerSetup from '../components/HeroPowerSetup'
 import PassiveSkillsSetup from '../components/PassiveSkillsSetup'
@@ -8,7 +7,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import GlobalErrorCatcher from '../components/GlobalErrorCatcher'
 import BackgroundMusic from '../components/BackgroundMusic'
 import StartMenu from './StartMenu'
-
+import Board from '../components/Board'
 function InnerApp() {
   const { state, dispatch } = useContext(GameContext)
 

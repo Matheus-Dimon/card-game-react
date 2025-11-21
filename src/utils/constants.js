@@ -192,9 +192,9 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: true,
       effect: "damage",
-      amount: 2,
+      amount: 5,
       icon: "🔥",
-      description: "Causa 1 de dano a um alvo"
+      description: "Causa 5 de dano a um alvo"
     },
     {
       id: "p1_divine_healing",
@@ -202,24 +202,24 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: true,
       effect: "heal_target",
-      amount: 3,
+      amount: 5,
       icon: "✨",
-      description: "Cura 4 de vida a qualquer alvo (herói ou unidade)"
+      description: "Cura 5 de vida a qualquer alvo (herói ou unidade)"
     },
     {
       id: "p1_armor",
       name: "Fortificar",
-      cost: 1,
+      cost: 0,
       requiresTarget: false,
       effect: "armor",
-      amount: 3,
+      amount: 4,
       icon: "🛡️",
       description: "Ganha 3 de armadura"
     },
     {
       id: "p1_draw",
       name: "Concentração",
-      cost: 3,
+      cost: 2,
       requiresTarget: false,
       effect: "draw",
       amount: 2,
@@ -229,7 +229,7 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p1_charge",
       name: "Ímpeto",
-      cost: 1,
+      cost: 0,
       requiresTarget: false,
       effect: "charge_melee",
       amount: 1,
@@ -242,9 +242,9 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: false,
       effect: "damage_all_enemies",
-      amount: 2,
+      amount: 3,
       icon: "⚡",
-      description: "Causa 2 de dano a todas unidades inimigas"
+      description: "Causa 3 de dano a todas unidades inimigas"
     },
     {
       id: "p1_mana_boost",
@@ -259,7 +259,7 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p1_resurrect",
       name: "Ressurreição",
-      cost: 2,
+      cost: 1,
       requiresTarget: false,
       effect: "draw_from_graveyard",
       amount: 1,
@@ -275,9 +275,9 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: true,
       effect: "damage",
-      amount: 2,
+      amount: 5,
       icon: "🔥",
-      description: "Causa 1 de dano a um alvo"
+      description: "Causa 5 de dano a um alvo"
     },
     {
       id: "p2_divine_healing",
@@ -285,24 +285,24 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: true,
       effect: "heal_target",
-      amount: 3,
+      amount: 5,
       icon: "✨",
-      description: "Cura 4 de vida a qualquer alvo (herói ou unidade)"
+      description: "Cura 5 de vida a qualquer alvo (herói ou unidade)"
     },
     {
       id: "p2_armor",
       name: "Fortificar",
-      cost: 1,
+      cost: 0,
       requiresTarget: false,
       effect: "armor",
-      amount: 3,
+      amount: 4,
       icon: "🛡️",
-      description: "Ganha 3 de armadura"
+      description: "Ganha 4 de armadura"
     },
     {
       id: "p2_draw",
       name: "Concentração",
-      cost: 3,
+      cost: 2,
       requiresTarget: false,
       effect: "draw",
       amount: 2,
@@ -312,7 +312,7 @@ export const HERO_POWER_OPTIONS = {
     {
       id: "p2_charge",
       name: "Ímpeto",
-      cost: 1,
+      cost: 0,
       requiresTarget: false,
       effect: "charge_melee",
       amount: 1,
@@ -325,9 +325,9 @@ export const HERO_POWER_OPTIONS = {
       cost: 1,
       requiresTarget: false,
       effect: "damage_all_enemies",
-      amount: 2,
+      amount: 3,
       icon: "⚡",
-      description: "Causa 2 de dano a todas unidades inimigas"
+      description: "Causa 3 de dano a todas unidades inimigas"
     },
     {
       id: "p2_mana_boost",
@@ -337,12 +337,12 @@ export const HERO_POWER_OPTIONS = {
       effect: "mana_boost",
       amount: 1,
       icon: "💎",
-      description: "Ganha 2 de mana temporária neste turno"
+      description: "Ganha 1 de mana temporária neste turno"
     },
     {
       id: "p2_resurrect",
       name: "Ressurreição",
-      cost: 3,
+      cost: 1,
       requiresTarget: false,
       effect: "draw_from_graveyard",
       amount: 1,
@@ -359,8 +359,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_hp_boost",
       name: "Vigor Inabalável",
       icon: "❤️",
-      description: "Suas unidades têm +2 de vida",
-      effect: { stat: 'defense', value: 2 }
+      description: "Suas unidades têm +3 de vida",
+      effect: { stat: 'defense', value: 3 }
     },
     {
       id: "passive_atk_boost",
@@ -431,15 +431,15 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_hp_boost_p2",
       name: "Vigor das Trevas",
       icon: "💀",
-      description: "Suas unidades têm +2 de vida",
-      effect: { stat: 'defense', value: 2 }
+      description: "Suas unidades têm +3 de vida",
+      effect: { stat: 'defense', value: 3 }
     },
     {
       id: "passive_atk_boost_p2",
       name: "Fúria Sombria",
       icon: "⚔️",
-      description: "Suas unidades têm +2 de ataque",
-      effect: { stat: 'attack', value: 2 }
+      description: "Suas unidades têm +3 de ataque",
+      effect: { stat: 'attack', value: 3 }
     },
     {
       id: "passive_mana_regen_p2",
@@ -459,15 +459,15 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_armor_start_p2",
       name: "Escudo das Sombras",
       icon: "🛡️",
-      description: "Comece com 10 de armadura",
-      effect: { stat: 'startingArmor', value: 10 }
+      description: "Comece com 15 de armadura",
+      effect: { stat: 'startingArmor', value: 15 }
     },
     {
       id: "passive_hp_hero_p2",
       name: "Resistência Morta-Viva",
       icon: "💀",
-      description: "Comece com +10 de vida",
-      effect: { stat: 'startingHP', value: 10 }
+      description: "Comece com +15 de vida",
+      effect: { stat: 'startingHP', value: 15 }
     },
     {
       id: "passive_cheaper_minions_p2",
@@ -487,8 +487,8 @@ export const HERO_PASSIVE_OPTIONS = {
       id: "passive_ranged_damage_p2",
       name: "Maldição Letal",
       icon: "🎯",
-      description: "Suas unidades ranged têm +3 ataque",
-      effect: { stat: 'rangedAttack', value: 3 }
+      description: "Suas unidades ranged têm +4 ataque",
+      effect: { stat: 'rangedAttack', value: 4 }
     },
     {
       id: "passive_hero_power_cheap_p2",
