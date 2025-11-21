@@ -252,6 +252,11 @@ export default function Board() {
     if (turn !== 1) return
     playSound('cardPlay')
     dispatch({ type: 'PLAY_CARD', payload: { cardId: card.id, playerKey: 'player1' } })
+
+    // Play heal sound for battlecry heals
+    if (card.effects?.some(e => e.effect === 'HEAL_TARGET' && e.type === 'BATTLECRY')) {
+      playSound('cleric_attack')  // plays clerigos.wav for healing
+    }
   }
 
   const endTurn = () => {
@@ -812,13 +817,18 @@ export default function Board() {
         </div>
       )}
 
-      <AnimationLayer animation={animation} onComplete={(cb) => {
+      <AnimationLayer animation={animation} onComplete={(cb, anim) => {
         try {
-          playSound('impact')
+          // Play appropriate sound based on animation type
+          if (anim?.damage < 0 || anim?.projectile === 'healglow') {
+            playSound('cleric_attack')  // plays clerigos.wav for healing
+          } else {
+            playSound('impact')  // regular impact sound for attacks
+          }
           dispatch({ type: 'END_ANIMATION' })
           if (cb) dispatch(cb)
         } catch (err) {
-          console.error('Error handling animation callback', err, cb)
+          console.error('Error handling animation callback', err, cb, anim)
           try { dispatch({ type: 'END_ANIMATION' }) } catch (e) { console.error(e) }
         }
       }} />

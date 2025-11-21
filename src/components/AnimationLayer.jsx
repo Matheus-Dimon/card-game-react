@@ -242,9 +242,9 @@ export default function AnimationLayer({ animation, onComplete }) {
         projectile.parentNode.removeChild(projectile)
       }
 
-      // Call onComplete with callback action
-      if (onComplete && animation.callbackAction) {
-        onComplete(animation.callbackAction)
+      // Call onComplete with callback action and animation data
+      if (onComplete) {
+        onComplete(animation.callbackAction, animation)
       }
     }, animation.duration || 1000)
 
